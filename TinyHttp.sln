@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyHttp", "src\TinyHttp\TinyHttp.csproj", "{380470D2-13BB-4173-B2AD-8229384E309E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{BB6059C7-737D-400E-A790-2D8D63BC26C9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{F3C02E24-7F72-4F1C-A370-8B8154E083DD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyHttp.Tests", "tests\TinyHttp.Tests\TinyHttp.Tests.csproj", "{58C70984-F7E2-4E13-BA6A-159D56FCFDE2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{5E17BD0A-E868-4B29-9767-C14B6008DDCD}"
+	ProjectSection(SolutionItems) = preProject
+		LICENSE = LICENSE
+		README = README
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{380470D2-13BB-4173-B2AD-8229384E309E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{380470D2-13BB-4173-B2AD-8229384E309E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{380470D2-13BB-4173-B2AD-8229384E309E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{380470D2-13BB-4173-B2AD-8229384E309E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{58C70984-F7E2-4E13-BA6A-159D56FCFDE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{58C70984-F7E2-4E13-BA6A-159D56FCFDE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{58C70984-F7E2-4E13-BA6A-159D56FCFDE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{58C70984-F7E2-4E13-BA6A-159D56FCFDE2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{380470D2-13BB-4173-B2AD-8229384E309E} = {BB6059C7-737D-400E-A790-2D8D63BC26C9}
+		{58C70984-F7E2-4E13-BA6A-159D56FCFDE2} = {F3C02E24-7F72-4F1C-A370-8B8154E083DD}
+	EndGlobalSection
+EndGlobal
