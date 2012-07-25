@@ -18,7 +18,7 @@ namespace TinyHttp.Tests
         [Test]
         public void a()
         {
-            var host = new Host("http://localhost:9999/", new X());
+            var host = new TinyHttpHost("http://localhost:9999/", new X());
             host.Start();
 
             while (true) ;

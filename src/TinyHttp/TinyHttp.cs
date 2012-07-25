@@ -38,13 +38,13 @@ namespace TinyHttp
     using System.Threading;
     using Microsoft.CSharp.RuntimeBinder;
 
-    #region Host
-    public class Host
+    #region TinyHttpHost
+    public class TinyHttpHost
     {
         private readonly HttpListener _listener;
         private readonly IRequestProcessor _requestProcessor;
 
-        public Host(string baseUri, IRequestProcessor requestProcessor)
+        public TinyHttpHost(string baseUri, IRequestProcessor requestProcessor)
         {
             _requestProcessor = requestProcessor;
             _listener = new HttpListener();
@@ -153,7 +153,7 @@ namespace TinyHttp
 
         private class Route
         {
-            private static readonly Regex PathRegex = new Regex(@"\{(?<param>\w+)\}", RegexOptions.Compiled);
+            private static readonly Regex PathRegex = new Regex(@"\{(?<param>\S+)\}", RegexOptions.Compiled);
 
             private readonly string[] _paramNames;
 
@@ -176,7 +176,7 @@ namespace TinyHttp
                                       {
                                           var paramName = m.Groups["param"].Value;
                                           paramNames.Add(paramName);
-                                          return String.Concat("(?<", paramName, @">\w+)");
+                                          return String.Concat("(?<", paramName, @">\S+)");
                                       }),
                     "$"));
                 _paramNames = paramNames.ToArray();

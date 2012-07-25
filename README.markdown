@@ -13,7 +13,7 @@ public class Program : RequestProcessor
 
     public static void Main()
     {
-        var host = new Host("http://localhost:9999/", new Program());
+        var host = new TinyHttpHost("http://localhost:9999/", new Program());
         host.Start();
 
         while (true) ;
