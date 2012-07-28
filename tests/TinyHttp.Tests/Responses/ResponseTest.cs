@@ -1,4 +1,4 @@
-﻿namespace TinyHttp.Tests
+﻿namespace TinyHttp.Tests.Responses
 {
     using System.Net;
     using FluentAssertions;
@@ -7,7 +7,7 @@
     public class ResponseTest
     {
         [Test] 
-        public void Constructor()
+        public void DefaultResponse()
         {
             var response = new Response();
             response.Body.Should().BeNull();

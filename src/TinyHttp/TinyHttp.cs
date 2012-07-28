@@ -43,9 +43,10 @@ namespace TinyHttp
     {
         private readonly HttpListener _listener;
         private readonly IRequestProcessor _requestProcessor;
-
-        public TinyHttpHost(string baseUri, IRequestProcessor requestProcessor)
+        
+        public TinyHttpHost(string baseUri, IRequestProcessor requestProcessor, string baseDirectory = null)
         {
+            if (baseDirectory != null) { FileResponse.BaseDirectory = baseDirectory; }
             _requestProcessor = requestProcessor;
             _listener = new HttpListener();
             _listener.Prefixes.Add(baseUri);
@@ -79,7 +80,7 @@ namespace TinyHttp
         {
             try { WriteResponse(_requestProcessor.HandleRequest(GetRequest(context.Request)), context.Response); }
             catch
-            { }
+            {}
         }
 
         private static void WriteResponse(Response response, HttpListenerResponse httpListenerResponse)
@@ -234,23 +235,26 @@ namespace TinyHttp
 
     public class FileResponse : Response
     {
+        public static string BaseDirectory { get; set; }
+        static FileResponse() { BaseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "html"); }
+
         public FileResponse(string filePath) : this(filePath, MimeTypes.GetMimeType(filePath))
         {}
 
         public FileResponse(string filePath, string contentType)
         {
-            if (String.IsNullOrEmpty(filePath))
+            StatusCode = HttpStatusCode.NotFound;
+            if (String.IsNullOrEmpty(filePath)) { return; }
+            var completeFilePath = Path.IsPathRooted(filePath) ? filePath : Path.Combine(BaseDirectory, filePath);
+            if (Path.HasExtension(completeFilePath) && completeFilePath.StartsWith(BaseDirectory) && File.Exists(completeFilePath))
             {
-                StatusCode = HttpStatusCode.NotFound;
-                return;
+                var fileInfo = new FileInfo(filePath);
+                Headers["ETag"] = fileInfo.LastWriteTimeUtc.Ticks.ToString("x");
+                Headers["Last-Modified"] = fileInfo.LastWriteTimeUtc.ToString("R");
+                Body = stream => { using (var file = File.OpenRead(filePath)) { file.CopyTo(stream); } };
+                ContentType = contentType;
+                StatusCode = HttpStatusCode.OK;
             }
-
-            var fileInfo = new FileInfo(filePath);
-            Headers["ETag"] = fileInfo.LastWriteTimeUtc.Ticks.ToString("x");
-            Headers["Last-Modified"] = fileInfo.LastWriteTimeUtc.ToString("R");
-            Body = stream => { using (var file = File.OpenRead(filePath)) { file.CopyTo(stream); } };
-            ContentType = contentType;
-            StatusCode = HttpStatusCode.OK;
         }
     }
 
@@ -259,18 +263,9 @@ namespace TinyHttp
         public TextResponse(string body, string contentType = "text/plain", Encoding encoding = null)
         {
             if (encoding == null) { encoding = Encoding.UTF8; }
-
             ContentType = contentType;
             StatusCode = HttpStatusCode.OK;
-
-            if (body != null)
-            {
-                Body = stream =>
-                {
-                    var data = encoding.GetBytes(body);
-                    stream.Write(data, 0, data.Length);
-                };
-            }
+            if (body != null) { Body = stream => { var data = encoding.GetBytes(body); stream.Write(data, 0, data.Length); }; }
         }
     }
 
@@ -278,19 +273,7 @@ namespace TinyHttp
     {
         public HtmlResponse(string body, string contentType = "text/html", Encoding encoding = null) : base(body, contentType, encoding)
         {
-            if (encoding == null) { encoding = Encoding.UTF8; }
-
             ContentType = contentType;
-            StatusCode = HttpStatusCode.OK;
-
-            if (body != null)
-            {
-                Body = stream =>
-                {
-                    var data = encoding.GetBytes(body);
-                    stream.Write(data, 0, data.Length);
-                };
-            }
         }
     }
 
@@ -1736,6 +1719,7 @@ namespace TinyHttp
 
         public static string GetMimeType(string fileName)
         {
+            if (fileName == null) { return null; }
             string result = null;
             var dot = fileName.LastIndexOf('.');
             if (dot != -1 && fileName.Length > dot + 1) { mimeTypes.TryGetValue(fileName.Substring(dot + 1), out result); }

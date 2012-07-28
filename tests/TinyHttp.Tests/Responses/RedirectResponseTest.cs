@@ -1,7 +1,5 @@
-﻿namespace TinyHttp.Tests
+﻿namespace TinyHttp.Tests.Responses
 {
-    using System;
-    using System.IO;
     using System.Net;
     using FluentAssertions;
     using NUnit.Framework;
@@ -42,21 +40,6 @@
             response.Headers.Should().Contain("Location", "/");
             response.Body.AsString().Should().BeEmpty();
             response.StatusCode.Should().Be(HttpStatusCode.SeeOther);
-        }
-    }
-
-    internal static class Extensions
-    {
-        public static string AsString(this Action<Stream> body)
-        {
-            string s;
-            using (var stream = new MemoryStream())
-            {
-                body.Invoke(stream);
-                stream.Seek(0, SeekOrigin.Begin);
-                s = new StreamReader(stream).ReadToEnd();
-            }
-            return s;
         }
     }
 }

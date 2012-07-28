@@ -54,11 +54,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NotFoundResponseTest.cs" />
+    <Compile Include="Responses\HtmlResponseTest.cs" />
+    <Compile Include="Responses\Extensions.cs" />
+    <Compile Include="Responses\FileResponseTest.cs" />
+    <Compile Include="Responses\NotFoundResponseTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RedirectResponseTest.cs" />
-    <Compile Include="ResponseTest.cs" />
+    <Compile Include="Responses\RedirectResponseTest.cs" />
+    <Compile Include="Responses\ResponseTest.cs" />
+    <Compile Include="Responses\TextResponseTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

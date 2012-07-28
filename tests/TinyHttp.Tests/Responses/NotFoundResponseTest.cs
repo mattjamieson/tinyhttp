@@ -1,9 +1,9 @@
-﻿namespace TinyHttp.Tests
+﻿namespace TinyHttp.Tests.Responses
 {
     using System.Net;
     using FluentAssertions;
     using NUnit.Framework;
-    
+
     public class NotFoundResponseTest
     {
         [Test]
