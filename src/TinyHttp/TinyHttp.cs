@@ -86,7 +86,7 @@ namespace TinyHttp
         private static void WriteResponse(Response response, HttpListenerResponse httpListenerResponse)
         {
             foreach (var header in response.Headers) { httpListenerResponse.AddHeader(header.Key, header.Value); }
-            httpListenerResponse.StatusCode = (int)response.StatusCode;
+            httpListenerResponse.StatusCode = (int) response.StatusCode;
             httpListenerResponse.ContentType = response.ContentType;
             using (var output = httpListenerResponse.OutputStream) { response.Body.Invoke(output); }
         }
@@ -191,10 +191,7 @@ namespace TinyHttp
             public Response Invoke(Request request)
             {
                 var match = Regex.Match(request.Url.AbsolutePath);
-
-                var parameters = new DynamicDictionary();
-                foreach (var paramName in _paramNames) { parameters[paramName] = match.Groups[paramName]; }
-
+                var parameters = DynamicDictionary.Create(_paramNames.ToDictionary(k => k, k => (object) match.Groups[k]));
                 return Action.Invoke(parameters);
             }
         }
@@ -338,13 +335,7 @@ namespace TinyHttp
         /// Returns an empty dynamic dictionary.
         /// </summary>
         /// <value>A <see cref="DynamicDictionary"/> instance.</value>
-        public static DynamicDictionary Empty
-        {
-            get
-            {
-                return new DynamicDictionary();
-            }
-        }
+        public static DynamicDictionary Empty { get { return new DynamicDictionary(); } }
 
         /// <summary>
         /// Creates a dynamic dictionary from an <see cref="IDictionary{TKey,TValue}"/> instance.
@@ -354,12 +345,7 @@ namespace TinyHttp
         public static DynamicDictionary Create(IDictionary<string, object> values)
         {
             var instance = new DynamicDictionary();
-
-            foreach (var key in values.Keys)
-            {
-                instance[key] = values[key];
-            }
-
+            foreach (var key in values.Keys) { instance[key] = values[key]; }
             return instance;
         }
 
@@ -381,11 +367,7 @@ namespace TinyHttp
         /// <param name="binder">Provides information about the object that called the dynamic operation. The binder.Name property provides the name of the member on which the dynamic operation is performed. For example, for the Console.WriteLine(sampleObject.SampleProperty) statement, where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"/> class, binder.Name returns "SampleProperty". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param><param name="result">The result of the get operation. For example, if the method is called for a property, you can assign the property value to <paramref name="result"/>.</param>
         public override bool TryGetMember(GetMemberBinder binder, out object result)
         {
-            if (!_dictionary.TryGetValue(binder.Name, out result))
-            {
-                result = new DynamicDictionaryValue(null);
-            }
-
+            if (!_dictionary.TryGetValue(binder.Name, out result)) { result = new DynamicDictionaryValue(null); }
             return true;
         }
 
@@ -393,28 +375,19 @@ namespace TinyHttp
         /// Returns the enumeration of all dynamic member names.
         /// </summary>
         /// <returns>A <see cref="IEnumerable{T}"/> that contains dynamic member names.</returns>
-        public override IEnumerable<string> GetDynamicMemberNames()
-        {
-            return _dictionary.Keys;
-        }
+        public override IEnumerable<string> GetDynamicMemberNames() { return _dictionary.Keys; }
 
         /// <summary>
         /// Returns the enumeration of all dynamic member names.
         /// </summary>
         /// <returns>A <see cref="IEnumerable{T}"/> that contains dynamic member names.</returns>
-        public IEnumerator<string> GetEnumerator()
-        {
-            return _dictionary.Keys.GetEnumerator();
-        }
+        public IEnumerator<string> GetEnumerator() { return _dictionary.Keys.GetEnumerator(); }
 
         /// <summary>
         /// Returns the enumeration of all dynamic member names.
         /// </summary>
         /// <returns>A <see cref="IEnumerator"/> that contains dynamic member names.</returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return _dictionary.Keys.GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() { return _dictionary.Keys.GetEnumerator(); }
 
         /// <summary>
         /// Gets or sets the <see cref="DynamicDictionaryValue"/> with the specified name.
@@ -425,19 +398,13 @@ namespace TinyHttp
             get
             {
                 name = GetNeutralKey(name);
-
                 dynamic member;
-                if (!_dictionary.TryGetValue(name, out member))
-                {
-                    member = new DynamicDictionaryValue(null);
-                }
-
+                if (!_dictionary.TryGetValue(name, out member)) { member = new DynamicDictionaryValue(null); }
                 return member;
             }
             set
             {
                 name = GetNeutralKey(name);
-
                 _dictionary[name] = value is DynamicDictionaryValue ? value : new DynamicDictionaryValue(value);
             }
         }
@@ -449,11 +416,7 @@ namespace TinyHttp
         /// <param name="other">An <see cref="DynamicDictionary"/> instance to compare with this instance.</param>
         public bool Equals(DynamicDictionary other)
         {
-            if (ReferenceEquals(null, other))
-            {
-                return false;
-            }
-
+            if (ReferenceEquals(null, other)) { return false; }
             return ReferenceEquals(this, other) || Equals(other._dictionary, _dictionary);
         }
 
@@ -464,16 +427,8 @@ namespace TinyHttp
         /// <returns><see langword="true"/> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <see langword="false"/>.</returns>
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, obj))
-            {
-                return true;
-            }
-
+            if (ReferenceEquals(null, obj)) { return false; }
+            if (ReferenceEquals(this, obj)) { return true; }
             return obj.GetType() == typeof(DynamicDictionary) && Equals((DynamicDictionary)obj);
         }
 
@@ -481,38 +436,26 @@ namespace TinyHttp
         /// Returns an enumerator that iterates through the collection.
         /// </summary>
         /// <returns>A <see cref="T:System.Collections.Generic.IEnumerator`1"/> that can be used to iterate through the collection.</returns>
-        IEnumerator<KeyValuePair<string, dynamic>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator()
-        {
-            return _dictionary.GetEnumerator();
-        }
+        IEnumerator<KeyValuePair<string, dynamic>> IEnumerable<KeyValuePair<string, object>>.GetEnumerator() { return _dictionary.GetEnumerator(); }
 
         /// <summary>
         /// Returns a hash code for this <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <returns> A hash code for this <see cref="DynamicDictionary"/>, suitable for use in hashing algorithms and data structures like a hash table.</returns>
-        public override int GetHashCode()
-        {
-            return (_dictionary != null ? _dictionary.GetHashCode() : 0);
-        }
+        public override int GetHashCode() { return (_dictionary != null ? _dictionary.GetHashCode() : 0); }
 
         /// <summary>
         /// Adds an element with the provided key and value to the <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <param name="key">The object to use as the key of the element to add.</param>
         /// <param name="value">The object to use as the value of the element to add.</param>
-        public void Add(string key, dynamic value)
-        {
-            this[key] = value;
-        }
+        public void Add(string key, dynamic value) { this[key] = value; }
 
         /// <summary>
         /// Adds an item to the <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <param name="item">The object to add to the <see cref="DynamicDictionary"/>.</param>
-        public void Add(KeyValuePair<string, dynamic> item)
-        {
-            this[item.Key] = item.Value;
-        }
+        public void Add(KeyValuePair<string, dynamic> item) { this[item.Key] = item.Value; }
 
         /// <summary>
         /// Determines whether the <see cref="DynamicDictionary"/> contains an element with the specified key.
@@ -520,19 +463,13 @@ namespace TinyHttp
         /// <returns><see langword="true" /> if the <see cref="DynamicDictionary"/> contains an element with the key; otherwise, <see langword="false" />.
         /// </returns>
         /// <param name="key">The key to locate in the <see cref="DynamicDictionary"/>.</param>
-        public bool ContainsKey(string key)
-        {
-            return _dictionary.ContainsKey(key);
-        }
+        public bool ContainsKey(string key) { return _dictionary.ContainsKey(key); }
 
         /// <summary>
         /// Gets an <see cref="T:System.Collections.Generic.ICollection`1"/> containing the keys of the <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <returns>An <see cref="T:System.Collections.Generic.ICollection`1"/> containing the keys of the <see cref="DynamicDictionary"/>.</returns>
-        public ICollection<string> Keys
-        {
-            get { return _dictionary.Keys; }
-        }
+        public ICollection<string> Keys { get { return _dictionary.Keys; } }
 
         /// <summary>
         /// Gets the value associated with the specified key.
@@ -540,27 +477,18 @@ namespace TinyHttp
         /// <returns><see langword="true" /> if the <see cref="DynamicDictionary"/> contains an element with the specified key; otherwise, <see langword="false" />.</returns>
         /// <param name="key">The key whose value to get.</param>
         /// <param name="value">When this method returns, the value associated with the specified key, if the key is found; otherwise, the default value for the type of the <paramref name="value"/> parameter. This parameter is passed uninitialized.</param>
-        public bool TryGetValue(string key, out dynamic value)
-        {
-            return _dictionary.TryGetValue(key, out value);
-        }
+        public bool TryGetValue(string key, out dynamic value) { return _dictionary.TryGetValue(key, out value); }
 
         /// <summary>
         /// Removes all items from the <see cref="DynamicDictionary"/>.
         /// </summary>
-        public void Clear()
-        {
-            _dictionary.Clear();
-        }
+        public void Clear() { _dictionary.Clear(); }
 
         /// <summary>
         /// Gets the number of elements contained in the <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <returns>The number of elements contained in the <see cref="DynamicDictionary"/>.</returns>
-        public int Count
-        {
-            get { return _dictionary.Count; }
-        }
+        public int Count { get { return _dictionary.Count; } }
 
         /// <summary>
         /// Determines whether the <see cref="DynamicDictionary"/> contains a specific value.
@@ -579,29 +507,20 @@ namespace TinyHttp
         /// </summary>
         /// <param name="array">The one-dimensional <see cref="T:System.Array"/> that is the destination of the elements copied from the <see cref="DynamicDictionary"/>. The <see cref="T:System.Array"/> must have zero-based indexing.</param>
         /// <param name="arrayIndex">The zero-based index in <paramref name="array"/> at which copying begins.</param>
-        public void CopyTo(KeyValuePair<string, dynamic>[] array, int arrayIndex)
-        {
-            _dictionary.CopyTo(array, arrayIndex);
-        }
+        public void CopyTo(KeyValuePair<string, dynamic>[] array, int arrayIndex) { _dictionary.CopyTo(array, arrayIndex); }
 
         /// <summary>
         /// Gets a value indicating whether the <see cref="DynamicDictionary"/> is read-only.
         /// </summary>
         /// <returns>Always returns <see langword="false" />.</returns>
-        public bool IsReadOnly
-        {
-            get { return false; }
-        }
+        public bool IsReadOnly { get { return false; } }
 
         /// <summary>
         /// Removes the element with the specified key from the <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <returns><see langword="true" /> if the element is successfully removed; otherwise, <see langword="false" />.</returns>
         /// <param name="key">The key of the element to remove.</param>
-        public bool Remove(string key)
-        {
-            return _dictionary.Remove(key);
-        }
+        public bool Remove(string key) { return _dictionary.Remove(key); }
 
         /// <summary>
         /// Removes the first occurrence of a specific object from the <see cref="DynamicDictionary"/>.
@@ -618,10 +537,7 @@ namespace TinyHttp
         /// Gets an <see cref="T:System.Collections.Generic.ICollection`1"/> containing the values in the <see cref="DynamicDictionary"/>.
         /// </summary>
         /// <returns>An <see cref="T:System.Collections.Generic.ICollection`1"/> containing the values in the <see cref="DynamicDictionary"/>.</returns>
-        public ICollection<dynamic> Values
-        {
-            get { return _dictionary.Values; }
-        }
+        public ICollection<dynamic> Values { get { return _dictionary.Values; } }
 
         private static KeyValuePair<string, dynamic> GetDynamicKeyValuePair(KeyValuePair<string, dynamic> item)
         {
@@ -629,10 +545,7 @@ namespace TinyHttp
             return dynamicValueKeyValuePair;
         }
 
-        private static string GetNeutralKey(string key)
-        {
-            return key.Replace("-", string.Empty);
-        }
+        private static string GetNeutralKey(string key) { return key.Replace("-", string.Empty); }
     }
 
     public class DynamicDictionaryValue : DynamicObject, IEquatable<DynamicDictionaryValue>, IConvertible
@@ -643,43 +556,27 @@ namespace TinyHttp
         /// Initializes a new instance of the <see cref="DynamicDictionaryValue"/> class.
         /// </summary>
         /// <param name="value">The value to store in the instance</param>
-        public DynamicDictionaryValue(object value)
-        {
-            _value = value;
-        }
+        public DynamicDictionaryValue(object value) { _value = value; }
 
         /// <summary>
         /// Gets a value indicating whether this instance has value.
         /// </summary>
         /// <value><c>true</c> if this instance has value; otherwise, <c>false</c>.</value>
         /// <remarks><see langword="null"/> is considered as not being a value.</remarks>
-        public bool HasValue
-        {
-            get { return (_value != null); }
-        }
+        public bool HasValue { get { return (_value != null); } }
 
         /// <summary>
         /// Gets the inner value
         /// </summary>
-        public object Value
-        {
-            get { return _value; }
-        }
+        public object Value { get { return _value; } }
 
         public static bool operator ==(DynamicDictionaryValue dynamicValue, object compareValue)
         {
-            if (dynamicValue._value == null && compareValue == null)
-            {
-                return true;
-            }
-
+            if (dynamicValue._value == null && compareValue == null) { return true; }
             return dynamicValue._value != null && dynamicValue._value.Equals(compareValue);
         }
 
-        public static bool operator !=(DynamicDictionaryValue dynamicValue, object compareValue)
-        {
-            return !(dynamicValue == compareValue);
-        }
+        public static bool operator !=(DynamicDictionaryValue dynamicValue, object compareValue) { return !(dynamicValue == compareValue); }
 
         /// <summary>
         /// Indicates whether the current object is equal to another object of the same type.
@@ -689,11 +586,7 @@ namespace TinyHttp
         /// <param name="compareValue">An <see cref="DynamicDictionaryValue"/> to compare with this instance.</param>
         public bool Equals(DynamicDictionaryValue compareValue)
         {
-            if (ReferenceEquals(null, compareValue))
-            {
-                return false;
-            }
-
+            if (ReferenceEquals(null, compareValue)) { return false; }
             return ReferenceEquals(this, compareValue) || Equals(compareValue._value, _value);
         }
 
@@ -704,16 +597,8 @@ namespace TinyHttp
         /// <param name="compareValue">The <see cref="object"/> to compare with the current <see cref="DynamicDictionaryValue"/>.</param>
         public override bool Equals(object compareValue)
         {
-            if (ReferenceEquals(null, compareValue))
-            {
-                return false;
-            }
-
-            if (ReferenceEquals(this, compareValue))
-            {
-                return true;
-            }
-
+            if (ReferenceEquals(null, compareValue)) { return false; }
+            if (ReferenceEquals(this, compareValue)) { return true; }
             return compareValue.GetType() == typeof(DynamicDictionaryValue) && Equals((DynamicDictionaryValue)compareValue);
         }
 
@@ -721,10 +606,7 @@ namespace TinyHttp
         /// Serves as a hash function for a particular type. 
         /// </summary>
         /// <returns>A hash code for the current instance.</returns>
-        public override int GetHashCode()
-        {
-            return (_value != null ? _value.GetHashCode() : 0);
-        }
+        public override int GetHashCode() { return (_value != null ? _value.GetHashCode() : 0); }
 
         /// <summary>
         /// Provides implementation for binary operations. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"/> class can override this method to specify dynamic behavior for operations such as addition and multiplication.
@@ -735,24 +617,10 @@ namespace TinyHttp
         {
             object resultOfCast;
             result = null;
-
-            if (binder.Operation != ExpressionType.Equal)
-            {
-                return false;
-            }
-
-            var convert =
-                Binder.Convert(CSharpBinderFlags.None, arg.GetType(), typeof(DynamicDictionaryValue));
-
-            if (!TryConvert((ConvertBinder)convert, out resultOfCast))
-            {
-                return false;
-            }
-
-            result = (resultOfCast == null) ?
-                Equals(arg, resultOfCast) :
-                resultOfCast.Equals(arg);
-
+            if (binder.Operation != ExpressionType.Equal) { return false; }
+            var convert = Binder.Convert(CSharpBinderFlags.None, arg.GetType(), typeof(DynamicDictionaryValue));
+            if (!TryConvert((ConvertBinder)convert, out resultOfCast)) { return false; }
+            result = (resultOfCast == null) ? Equals(arg, resultOfCast) : resultOfCast.Equals(arg);
             return true;
         }
 
@@ -764,19 +632,13 @@ namespace TinyHttp
         public override bool TryConvert(ConvertBinder binder, out object result)
         {
             result = null;
-
-            if (_value == null)
-            {
-                return true;
-            }
-
+            if (_value == null) { return true; }
             var binderType = binder.Type;
             if (binderType == typeof(String))
             {
                 result = Convert.ToString(_value);
                 return true;
             }
-
             if (binderType == typeof(Guid) || binderType == typeof(Guid?))
             {
                 Guid guid;
@@ -797,138 +659,77 @@ namespace TinyHttp
             }
             else
             {
-                if (binderType.IsGenericType && binderType.GetGenericTypeDefinition() == typeof(Nullable<>))
-                {
-                    binderType = binderType.GetGenericArguments()[0];
-                }
-
+                if (binderType.IsGenericType && binderType.GetGenericTypeDefinition() == typeof (Nullable<>)) { binderType = binderType.GetGenericArguments()[0]; }
                 var typeCode = Type.GetTypeCode(binderType);
-
-                if (typeCode == TypeCode.Object) // something went wrong here
-                {
-                    return false;
-                }
-
+                if (typeCode == TypeCode.Object) { return false; }
                 result = Convert.ChangeType(_value, typeCode);
-
                 return true;
             }
             return base.TryConvert(binder, out result);
         }
 
-        public override string ToString()
-        {
-            return this._value == null ? base.ToString() : Convert.ToString(this._value);
-        }
+        public override string ToString() { return _value == null ? base.ToString() : Convert.ToString(_value); }
 
         public static implicit operator bool(DynamicDictionaryValue dynamicValue)
         {
-            if (!dynamicValue.HasValue)
-            {
-                return false;
-            }
-
-            if (dynamicValue._value.GetType().IsValueType)
-            {
-                return (Convert.ToBoolean(dynamicValue._value));
-            }
-
+            if (!dynamicValue.HasValue) { return false; }
+            if (dynamicValue._value.GetType().IsValueType) { return (Convert.ToBoolean(dynamicValue._value)); }
             bool result;
-            if (bool.TryParse(dynamicValue.ToString(), out result))
-            {
-                return result;
-            }
-
+            if (bool.TryParse(dynamicValue.ToString(), out result)) { return result; }
             return true;
         }
 
-        public static implicit operator string(DynamicDictionaryValue dynamicValue)
-        {
-            return dynamicValue.ToString();
-        }
+        public static implicit operator string(DynamicDictionaryValue dynamicValue) { return dynamicValue.ToString(); }
 
         public static implicit operator int(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value.GetType().IsValueType)
-            {
-                return Convert.ToInt32(dynamicValue._value);
-            }
-
-            return int.Parse(dynamicValue.ToString());
+            if (dynamicValue._value.GetType().IsValueType) { return Convert.ToInt32(dynamicValue._value); }
+            return Int32.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator Guid(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value is Guid)
-            {
-                return (Guid)dynamicValue._value;
-            }
-
+            if (dynamicValue._value is Guid) { return (Guid) dynamicValue._value; }
             return Guid.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator DateTime(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value is DateTime)
-            {
-                return (DateTime)dynamicValue._value;
-            }
-
+            if (dynamicValue._value is DateTime) { return (DateTime) dynamicValue._value; }
             return DateTime.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator TimeSpan(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value is TimeSpan)
-            {
-                return (TimeSpan)dynamicValue._value;
-            }
-
+            if (dynamicValue._value is TimeSpan) { return (TimeSpan)dynamicValue._value; }
             return TimeSpan.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator long(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value.GetType().IsValueType)
-            {
-                return Convert.ToInt64(dynamicValue._value);
-            }
-
+            if (dynamicValue._value.GetType().IsValueType) { return Convert.ToInt64(dynamicValue._value); }
             return long.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator float(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value.GetType().IsValueType)
-            {
-                return Convert.ToSingle(dynamicValue._value);
-            }
-
+            if (dynamicValue._value.GetType().IsValueType) { return Convert.ToSingle(dynamicValue._value); }
             return float.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator decimal(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value.GetType().IsValueType)
-            {
-                return Convert.ToDecimal(dynamicValue._value);
-            }
-
+            if (dynamicValue._value.GetType().IsValueType) { return Convert.ToDecimal(dynamicValue._value); }
             return decimal.Parse(dynamicValue.ToString());
         }
 
         public static implicit operator double(DynamicDictionaryValue dynamicValue)
         {
-            if (dynamicValue._value.GetType().IsValueType)
-            {
-                return Convert.ToDouble(dynamicValue._value);
-            }
-
+            if (dynamicValue._value.GetType().IsValueType) { return Convert.ToDouble(dynamicValue._value); }
             return double.Parse(dynamicValue.ToString());
         }
 
         #region Implementation of IConvertible
-
         /// <summary>
         /// Returns the <see cref="T:System.TypeCode"/> for this instance.
         /// </summary>
@@ -938,7 +739,7 @@ namespace TinyHttp
         /// <filterpriority>2</filterpriority>
         public TypeCode GetTypeCode()
         {
-            if (_value == null) return TypeCode.Empty;
+            if (_value == null) { return TypeCode.Empty; }
             return Type.GetTypeCode(_value.GetType());
         }
 
@@ -949,10 +750,7 @@ namespace TinyHttp
         /// A Boolean value equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public bool ToBoolean(IFormatProvider provider)
-        {
-            return Convert.ToBoolean(_value, provider);
-        }
+        public bool ToBoolean(IFormatProvider provider) { return Convert.ToBoolean(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent Unicode character using the specified culture-specific formatting information.
@@ -961,10 +759,7 @@ namespace TinyHttp
         /// A Unicode character equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public char ToChar(IFormatProvider provider)
-        {
-            return Convert.ToChar(_value, provider);
-        }
+        public char ToChar(IFormatProvider provider) { return Convert.ToChar(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 8-bit signed integer using the specified culture-specific formatting information.
@@ -973,10 +768,7 @@ namespace TinyHttp
         /// An 8-bit signed integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public sbyte ToSByte(IFormatProvider provider)
-        {
-            return Convert.ToSByte(_value, provider);
-        }
+        public sbyte ToSByte(IFormatProvider provider) { return Convert.ToSByte(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 8-bit unsigned integer using the specified culture-specific formatting information.
@@ -985,10 +777,7 @@ namespace TinyHttp
         /// An 8-bit unsigned integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public byte ToByte(IFormatProvider provider)
-        {
-            return Convert.ToByte(_value, provider);
-        }
+        public byte ToByte(IFormatProvider provider) { return Convert.ToByte(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 16-bit signed integer using the specified culture-specific formatting information.
@@ -997,10 +786,7 @@ namespace TinyHttp
         /// An 16-bit signed integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public short ToInt16(IFormatProvider provider)
-        {
-            return Convert.ToInt16(_value, provider);
-        }
+        public short ToInt16(IFormatProvider provider) { return Convert.ToInt16(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 16-bit unsigned integer using the specified culture-specific formatting information.
@@ -1009,10 +795,7 @@ namespace TinyHttp
         /// An 16-bit unsigned integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public ushort ToUInt16(IFormatProvider provider)
-        {
-            return Convert.ToUInt16(_value, provider);
-        }
+        public ushort ToUInt16(IFormatProvider provider) { return Convert.ToUInt16(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 32-bit signed integer using the specified culture-specific formatting information.
@@ -1021,10 +804,7 @@ namespace TinyHttp
         /// An 32-bit signed integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public int ToInt32(IFormatProvider provider)
-        {
-            return Convert.ToInt32(_value, provider);
-        }
+        public int ToInt32(IFormatProvider provider) { return Convert.ToInt32(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 32-bit unsigned integer using the specified culture-specific formatting information.
@@ -1033,10 +813,7 @@ namespace TinyHttp
         /// An 32-bit unsigned integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public uint ToUInt32(IFormatProvider provider)
-        {
-            return Convert.ToUInt32(_value, provider);
-        }
+        public uint ToUInt32(IFormatProvider provider) { return Convert.ToUInt32(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 64-bit signed integer using the specified culture-specific formatting information.
@@ -1045,10 +822,7 @@ namespace TinyHttp
         /// An 64-bit signed integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public long ToInt64(IFormatProvider provider)
-        {
-            return Convert.ToInt64(_value, provider);
-        }
+        public long ToInt64(IFormatProvider provider) { return Convert.ToInt64(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent 64-bit unsigned integer using the specified culture-specific formatting information.
@@ -1057,10 +831,7 @@ namespace TinyHttp
         /// An 64-bit unsigned integer equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public ulong ToUInt64(IFormatProvider provider)
-        {
-            return Convert.ToUInt64(_value, provider);
-        }
+        public ulong ToUInt64(IFormatProvider provider) { return Convert.ToUInt64(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent single-precision floating-point number using the specified culture-specific formatting information.
@@ -1069,10 +840,7 @@ namespace TinyHttp
         /// A single-precision floating-point number equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public float ToSingle(IFormatProvider provider)
-        {
-            return Convert.ToSingle(_value, provider);
-        }
+        public float ToSingle(IFormatProvider provider) { return Convert.ToSingle(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent double-precision floating-point number using the specified culture-specific formatting information.
@@ -1081,10 +849,7 @@ namespace TinyHttp
         /// A double-precision floating-point number equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public double ToDouble(IFormatProvider provider)
-        {
-            return Convert.ToDouble(_value, provider);
-        }
+        public double ToDouble(IFormatProvider provider) { return Convert.ToDouble(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent <see cref="T:System.Decimal"/> number using the specified culture-specific formatting information.
@@ -1093,10 +858,7 @@ namespace TinyHttp
         /// A <see cref="T:System.Decimal"/> number equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public decimal ToDecimal(IFormatProvider provider)
-        {
-            return Convert.ToDecimal(_value, provider);
-        }
+        public decimal ToDecimal(IFormatProvider provider) { return Convert.ToDecimal(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent <see cref="T:System.DateTime"/> using the specified culture-specific formatting information.
@@ -1105,10 +867,7 @@ namespace TinyHttp
         /// A <see cref="T:System.DateTime"/> instance equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public DateTime ToDateTime(IFormatProvider provider)
-        {
-            return Convert.ToDateTime(_value, provider);
-        }
+        public DateTime ToDateTime(IFormatProvider provider) { return Convert.ToDateTime(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an equivalent <see cref="T:System.String"/> using the specified culture-specific formatting information.
@@ -1117,10 +876,7 @@ namespace TinyHttp
         /// A <see cref="T:System.String"/> instance equivalent to the value of this instance.
         /// </returns>
         /// <param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public string ToString(IFormatProvider provider)
-        {
-            return Convert.ToString(_value, provider);
-        }
+        public string ToString(IFormatProvider provider) { return Convert.ToString(_value, provider); }
 
         /// <summary>
         /// Converts the value of this instance to an <see cref="T:System.Object"/> of the specified <see cref="T:System.Type"/> that has an equivalent value, using the specified culture-specific formatting information.
@@ -1129,11 +885,7 @@ namespace TinyHttp
         /// An <see cref="T:System.Object"/> instance of type <paramref name="conversionType"/> whose value is equivalent to the value of this instance.
         /// </returns>
         /// <param name="conversionType">The <see cref="T:System.Type"/> to which the value of this instance is converted. </param><param name="provider">An <see cref="T:System.IFormatProvider"/> interface implementation that supplies culture-specific formatting information. </param><filterpriority>2</filterpriority>
-        public object ToType(Type conversionType, IFormatProvider provider)
-        {
-            return Convert.ChangeType(_value, conversionType, provider);
-        }
-
+        public object ToType(Type conversionType, IFormatProvider provider) { return Convert.ChangeType(_value, conversionType, provider); }
         #endregion
     }
     #endregion
@@ -1170,551 +922,551 @@ namespace TinyHttp
     //
     public sealed class MimeTypes
     {
-        static readonly Dictionary<string, string> mimeTypes;
+        static readonly Dictionary<string, string> Types;
 
         static MimeTypes()
         {
-            mimeTypes = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            mimeTypes.Add("323", "text/h323");
-            mimeTypes.Add("3dmf", "x-world/x-3dmf");
-            mimeTypes.Add("3dm", "x-world/x-3dmf");
-            mimeTypes.Add("7z", "application/x-7z-compressed");
-            mimeTypes.Add("aab", "application/x-authorware-bin");
-            mimeTypes.Add("aam", "application/x-authorware-map");
-            mimeTypes.Add("aas", "application/x-authorware-seg");
-            mimeTypes.Add("abc", "text/vnd.abc");
-            mimeTypes.Add("acgi", "text/html");
-            mimeTypes.Add("acx", "application/internet-property-stream");
-            mimeTypes.Add("afl", "video/animaflex");
-            mimeTypes.Add("ai", "application/postscript");
-            mimeTypes.Add("aif", "audio/aiff");
-            mimeTypes.Add("aifc", "audio/aiff");
-            mimeTypes.Add("aiff", "audio/aiff");
-            mimeTypes.Add("aim", "application/x-aim");
-            mimeTypes.Add("aip", "text/x-audiosoft-intra");
-            mimeTypes.Add("ani", "application/x-navi-animation");
-            mimeTypes.Add("aos", "application/x-nokia-9000-communicator-add-on-software");
-            mimeTypes.Add("application", "application/x-ms-application");
-            mimeTypes.Add("aps", "application/mime");
-            mimeTypes.Add("art", "image/x-jg");
-            mimeTypes.Add("asf", "video/x-ms-asf");
-            mimeTypes.Add("asm", "text/x-asm");
-            mimeTypes.Add("asp", "text/asp");
-            mimeTypes.Add("asr", "video/x-ms-asf");
-            mimeTypes.Add("asx", "application/x-mplayer2");
-            mimeTypes.Add("atom", "application/atom.xml");
-            mimeTypes.Add("atomcat", "application/atomcat+xml");
-            mimeTypes.Add("atomsvc", "application/atomsvc+xml");
-            mimeTypes.Add("au", "audio/x-au");
-            mimeTypes.Add("avi", "video/avi");
-            mimeTypes.Add("avs", "video/avs-video");
-            mimeTypes.Add("axs", "application/olescript");
-            mimeTypes.Add("bas", "text/plain");
-            mimeTypes.Add("bcpio", "application/x-bcpio");
-            mimeTypes.Add("bin", "application/octet-stream");
-            mimeTypes.Add("bm", "image/bmp");
-            mimeTypes.Add("bmp", "image/bmp");
-            mimeTypes.Add("boo", "application/book");
-            mimeTypes.Add("book", "application/book");
-            mimeTypes.Add("boz", "application/x-bzip2");
-            mimeTypes.Add("bsh", "application/x-bsh");
-            mimeTypes.Add("bz2", "application/x-bzip2");
-            mimeTypes.Add("bz", "application/x-bzip");
-            mimeTypes.Add("cat", "application/vnd.ms-pki.seccat");
-            mimeTypes.Add("ccad", "application/clariscad");
-            mimeTypes.Add("cco", "application/x-cocoa");
-            mimeTypes.Add("cc", "text/plain");
-            mimeTypes.Add("cdf", "application/cdf");
-            mimeTypes.Add("cer", "application/pkix-cert");
-            mimeTypes.Add("cha", "application/x-chat");
-            mimeTypes.Add("chat", "application/x-chat");
-            mimeTypes.Add("class", "application/java");
-            mimeTypes.Add("clp", "application/x-msclip");
-            mimeTypes.Add("cmx", "image/x-cmx");
-            mimeTypes.Add("cod", "image/cis-cod");
-            mimeTypes.Add("conf", "text/plain");
-            mimeTypes.Add("cpio", "application/x-cpio");
-            mimeTypes.Add("cpp", "text/plain");
-            mimeTypes.Add("cpt", "application/x-cpt");
-            mimeTypes.Add("crd", "application/x-mscardfile");
-            mimeTypes.Add("crl", "application/pkix-crl");
-            mimeTypes.Add("crt", "application/pkix-cert");
-            mimeTypes.Add("csh", "application/x-csh");
-            mimeTypes.Add("css", "text/css");
-            mimeTypes.Add("c", "text/plain");
-            mimeTypes.Add("c++", "text/plain");
-            mimeTypes.Add("cs", "text/plain");
-            mimeTypes.Add("cxx", "text/plain");
-            mimeTypes.Add("dcr", "application/x-director");
-            mimeTypes.Add("deepv", "application/x-deepv");
-            mimeTypes.Add("def", "text/plain");
-            mimeTypes.Add("deploy", "application/octet-stream");
-            mimeTypes.Add("der", "application/x-x509-ca-cert");
-            mimeTypes.Add("dib", "image/bmp");
-            mimeTypes.Add("dif", "video/x-dv");
-            mimeTypes.Add("dir", "application/x-director");
-            mimeTypes.Add("disco", "application/xml");
-            mimeTypes.Add("dll", "application/x-msdownload");
-            mimeTypes.Add("dl", "video/dl");
-            mimeTypes.Add("doc", "application/msword");
-            mimeTypes.Add("dot", "application/msword");
-            mimeTypes.Add("dp", "application/commonground");
-            mimeTypes.Add("drw", "application/drafting");
-            mimeTypes.Add("dvi", "application/x-dvi");
-            mimeTypes.Add("dv", "video/x-dv");
-            mimeTypes.Add("dwf", "drawing/x-dwf (old)");
-            mimeTypes.Add("dwg", "application/acad");
-            mimeTypes.Add("dxf", "application/dxf");
-            mimeTypes.Add("dxr", "application/x-director");
-            mimeTypes.Add("elc", "application/x-elc");
-            mimeTypes.Add("el", "text/x-script.elisp");
-            mimeTypes.Add("eml", "message/rfc822");
-            mimeTypes.Add("eot", "application/vnd.bw-fontobject");
-            mimeTypes.Add("eps", "application/postscript");
-            mimeTypes.Add("es", "application/x-esrehber");
-            mimeTypes.Add("etx", "text/x-setext");
-            mimeTypes.Add("evy", "application/envoy");
-            mimeTypes.Add("exe", "application/octet-stream");
-            mimeTypes.Add("f77", "text/plain");
-            mimeTypes.Add("f90", "text/plain");
-            mimeTypes.Add("fdf", "application/vnd.fdf");
-            mimeTypes.Add("fif", "image/fif");
-            mimeTypes.Add("fli", "video/fli");
-            mimeTypes.Add("flo", "image/florian");
-            mimeTypes.Add("flr", "x-world/x-vrml");
-            mimeTypes.Add("flx", "text/vnd.fmi.flexstor");
-            mimeTypes.Add("fmf", "video/x-atomic3d-feature");
-            mimeTypes.Add("for", "text/plain");
-            mimeTypes.Add("fpx", "image/vnd.fpx");
-            mimeTypes.Add("frl", "application/freeloader");
-            mimeTypes.Add("f", "text/plain");
-            mimeTypes.Add("funk", "audio/make");
-            mimeTypes.Add("g3", "image/g3fax");
-            mimeTypes.Add("gif", "image/gif");
-            mimeTypes.Add("gl", "video/gl");
-            mimeTypes.Add("gsd", "audio/x-gsm");
-            mimeTypes.Add("gsm", "audio/x-gsm");
-            mimeTypes.Add("gsp", "application/x-gsp");
-            mimeTypes.Add("gss", "application/x-gss");
-            mimeTypes.Add("gtar", "application/x-gtar");
-            mimeTypes.Add("g", "text/plain");
-            mimeTypes.Add("gz", "application/x-gzip");
-            mimeTypes.Add("gzip", "application/x-gzip");
-            mimeTypes.Add("hdf", "application/x-hdf");
-            mimeTypes.Add("help", "application/x-helpfile");
-            mimeTypes.Add("hgl", "application/vnd.hp-HPGL");
-            mimeTypes.Add("hh", "text/plain");
-            mimeTypes.Add("hlb", "text/x-script");
-            mimeTypes.Add("hlp", "application/x-helpfile");
-            mimeTypes.Add("hpg", "application/vnd.hp-HPGL");
-            mimeTypes.Add("hpgl", "application/vnd.hp-HPGL");
-            mimeTypes.Add("hqx", "application/binhex");
-            mimeTypes.Add("hta", "application/hta");
-            mimeTypes.Add("htc", "text/x-component");
-            mimeTypes.Add("h", "text/plain");
-            mimeTypes.Add("htmls", "text/html");
-            mimeTypes.Add("html", "text/html");
-            mimeTypes.Add("htm", "text/html");
-            mimeTypes.Add("htt", "text/webviewhtml");
-            mimeTypes.Add("htx", "text/html");
-            mimeTypes.Add("ice", "x-conference/x-cooltalk");
-            mimeTypes.Add("ico", "image/x-icon");
-            mimeTypes.Add("idc", "text/plain");
-            mimeTypes.Add("ief", "image/ief");
-            mimeTypes.Add("iefs", "image/ief");
-            mimeTypes.Add("iges", "application/iges");
-            mimeTypes.Add("igs", "application/iges");
-            mimeTypes.Add("iii", "application/x-iphone");
-            mimeTypes.Add("ima", "application/x-ima");
-            mimeTypes.Add("imap", "application/x-httpd-imap");
-            mimeTypes.Add("inf", "application/inf");
-            mimeTypes.Add("ins", "application/x-internett-signup");
-            mimeTypes.Add("ip", "application/x-ip2");
-            mimeTypes.Add("isp", "application/x-internet-signup");
-            mimeTypes.Add("isu", "video/x-isvideo");
-            mimeTypes.Add("it", "audio/it");
-            mimeTypes.Add("iv", "application/x-inventor");
-            mimeTypes.Add("ivf", "video/x-ivf");
-            mimeTypes.Add("ivr", "i-world/i-vrml");
-            mimeTypes.Add("ivy", "application/x-livescreen");
-            mimeTypes.Add("jam", "audio/x-jam");
-            mimeTypes.Add("java", "text/plain");
-            mimeTypes.Add("jav", "text/plain");
-            mimeTypes.Add("jcm", "application/x-java-commerce");
-            mimeTypes.Add("jfif", "image/jpeg");
-            mimeTypes.Add("jfif-tbnl", "image/jpeg");
-            mimeTypes.Add("jpeg", "image/jpeg");
-            mimeTypes.Add("jpe", "image/jpeg");
-            mimeTypes.Add("jpg", "image/jpeg");
-            mimeTypes.Add("jps", "image/x-jps");
-            mimeTypes.Add("js", "application/x-javascript");
-            mimeTypes.Add("json", "application/application/json");
-            mimeTypes.Add("jut", "image/jutvision");
-            mimeTypes.Add("kar", "audio/midi");
-            mimeTypes.Add("ksh", "text/x-script.ksh");
-            mimeTypes.Add("la", "audio/nspaudio");
-            mimeTypes.Add("lam", "audio/x-liveaudio");
-            mimeTypes.Add("latex", "application/x-latex");
-            mimeTypes.Add("list", "text/plain");
-            mimeTypes.Add("lma", "audio/nspaudio");
-            mimeTypes.Add("log", "text/plain");
-            mimeTypes.Add("lsp", "application/x-lisp");
-            mimeTypes.Add("lst", "text/plain");
-            mimeTypes.Add("lsx", "text/x-la-asf");
-            mimeTypes.Add("ltx", "application/x-latex");
-            mimeTypes.Add("m13", "application/x-msmediaview");
-            mimeTypes.Add("m14", "application/x-msmediaview");
-            mimeTypes.Add("m1v", "video/mpeg");
-            mimeTypes.Add("m2a", "audio/mpeg");
-            mimeTypes.Add("m2v", "video/mpeg");
-            mimeTypes.Add("m3u", "audio/x-mpequrl");
-            mimeTypes.Add("m4u", "video/x-mpegurl");
-            mimeTypes.Add("m4v", "video/mp4");
-            mimeTypes.Add("m4a", "audio/mp4");
-            mimeTypes.Add("m4r", "audio/mp4");
-            mimeTypes.Add("m4b", "audio/mp4");
-            mimeTypes.Add("m4p", "audio/mp4");
-            mimeTypes.Add("man", "application/x-troff-man");
-            mimeTypes.Add("manifest", "application/x-ms-manifest");
-            mimeTypes.Add("map", "application/x-navimap");
-            mimeTypes.Add("mar", "text/plain");
-            mimeTypes.Add("mbd", "application/mbedlet");
-            mimeTypes.Add("mc$", "application/x-magic-cap-package-1.0");
-            mimeTypes.Add("mcd", "application/mcad");
-            mimeTypes.Add("mcf", "image/vasa");
-            mimeTypes.Add("mcp", "application/netmc");
-            mimeTypes.Add("mdb", "application/x-msaccess");
-            mimeTypes.Add("me", "application/x-troff-me");
-            mimeTypes.Add("mht", "message/rfc822");
-            mimeTypes.Add("mhtml", "message/rfc822");
-            mimeTypes.Add("mid", "audio/midi");
-            mimeTypes.Add("midi", "audio/midi");
-            mimeTypes.Add("mif", "application/x-mif");
-            mimeTypes.Add("mime", "message/rfc822");
-            mimeTypes.Add("mjf", "audio/x-vnd.AudioExplosion.MjuiceMediaFile");
-            mimeTypes.Add("mjpg", "video/x-motion-jpeg");
-            mimeTypes.Add("mm", "application/base64");
-            mimeTypes.Add("mme", "application/base64");
-            mimeTypes.Add("mny", "application/x-msmoney");
-            mimeTypes.Add("mod", "audio/mod");
-            mimeTypes.Add("moov", "video/quicktime");
-            mimeTypes.Add("movie", "video/x-sgi-movie");
-            mimeTypes.Add("mov", "video/quicktime");
-            mimeTypes.Add("mp2", "video/mpeg");
-            mimeTypes.Add("mp3", "audio/mpeg3");
-            mimeTypes.Add("mp4", "video/mp4");
-            mimeTypes.Add("mp4v", "video/mp4");
-            mimeTypes.Add("mpa", "audio/mpeg");
-            mimeTypes.Add("mpc", "application/x-project");
-            mimeTypes.Add("mpeg", "video/mpeg");
-            mimeTypes.Add("mpe", "video/mpeg");
-            mimeTypes.Add("mpga", "audio/mpeg");
-            mimeTypes.Add("mpg", "video/mpeg");
-            mimeTypes.Add("mpg4", "video/mp4");
-            mimeTypes.Add("mpp", "application/vnd.ms-project");
-            mimeTypes.Add("mpt", "application/x-project");
-            mimeTypes.Add("mpv2", "video/mpeg");
-            mimeTypes.Add("mpv", "application/x-project");
-            mimeTypes.Add("mpx", "application/x-project");
-            mimeTypes.Add("mrc", "application/marc");
-            mimeTypes.Add("ms", "application/x-troff-ms");
-            mimeTypes.Add("m", "text/plain");
-            mimeTypes.Add("mvb", "application/x-msmediaview");
-            mimeTypes.Add("mv", "video/x-sgi-movie");
-            mimeTypes.Add("my", "audio/make");
-            mimeTypes.Add("mzz", "application/x-vnd.AudioExplosion.mzz");
-            mimeTypes.Add("nap", "image/naplps");
-            mimeTypes.Add("naplps", "image/naplps");
-            mimeTypes.Add("nc", "application/x-netcdf");
-            mimeTypes.Add("ncm", "application/vnd.nokia.configuration-message");
-            mimeTypes.Add("niff", "image/x-niff");
-            mimeTypes.Add("nif", "image/x-niff");
-            mimeTypes.Add("nix", "application/x-mix-transfer");
-            mimeTypes.Add("nsc", "application/x-conference");
-            mimeTypes.Add("nvd", "application/x-navidoc");
-            mimeTypes.Add("nws", "message/rfc822");
-            mimeTypes.Add("oda", "application/oda");
-            mimeTypes.Add("ods", "application/oleobject");
-            mimeTypes.Add("oga", "audio/ogg");
-            mimeTypes.Add("ogg", "audio/ogg");
-            mimeTypes.Add("ogv", "video/ogg");
-            mimeTypes.Add("omc", "application/x-omc");
-            mimeTypes.Add("omcd", "application/x-omcdatamaker");
-            mimeTypes.Add("omcr", "application/x-omcregerator");
-            mimeTypes.Add("otf", "application/x-font-otf");
-            mimeTypes.Add("p10", "application/pkcs10");
-            mimeTypes.Add("p12", "application/pkcs-12");
-            mimeTypes.Add("p7a", "application/x-pkcs7-signature");
-            mimeTypes.Add("p7b", "application/x-pkcs7-certificates");
-            mimeTypes.Add("p7c", "application/pkcs7-mime");
-            mimeTypes.Add("p7m", "application/pkcs7-mime");
-            mimeTypes.Add("p7r", "application/x-pkcs7-certreqresp");
-            mimeTypes.Add("p7s", "application/pkcs7-signature");
-            mimeTypes.Add("part", "application/pro_eng");
-            mimeTypes.Add("pas", "text/pascal");
-            mimeTypes.Add("pbm", "image/x-portable-bitmap");
-            mimeTypes.Add("pcl", "application/x-pcl");
-            mimeTypes.Add("pct", "image/x-pict");
-            mimeTypes.Add("pcx", "image/x-pcx");
-            mimeTypes.Add("pdb", "chemical/x-pdb");
-            mimeTypes.Add("pdf", "application/pdf");
-            mimeTypes.Add("pfunk", "audio/make");
-            mimeTypes.Add("pfx", "application/x-pkcs12");
-            mimeTypes.Add("pgm", "image/x-portable-graymap");
-            mimeTypes.Add("pic", "image/pict");
-            mimeTypes.Add("pict", "image/pict");
-            mimeTypes.Add("pkg", "application/x-newton-compatible-pkg");
-            mimeTypes.Add("pko", "application/vnd.ms-pki.pko");
-            mimeTypes.Add("pl", "text/plain");
-            mimeTypes.Add("plx", "application/x-PiXCLscript");
-            mimeTypes.Add("pm4", "application/x-pagemaker");
-            mimeTypes.Add("pm5", "application/x-pagemaker");
-            mimeTypes.Add("pma", "application/x-perfmon");
-            mimeTypes.Add("pmc", "application/x-perfmon");
-            mimeTypes.Add("pm", "image/x-xpixmap");
-            mimeTypes.Add("pml", "application/x-perfmon");
-            mimeTypes.Add("pmr", "application/x-perfmon");
-            mimeTypes.Add("pmw", "application/x-perfmon");
-            mimeTypes.Add("png", "image/png");
-            mimeTypes.Add("pnm", "application/x-portable-anymap");
-            mimeTypes.Add("pot", "application/mspowerpoint");
-            mimeTypes.Add("pov", "model/x-pov");
-            mimeTypes.Add("ppa", "application/vnd.ms-powerpoint");
-            mimeTypes.Add("ppm", "image/x-portable-pixmap");
-            mimeTypes.Add("pps", "application/mspowerpoint");
-            mimeTypes.Add("ppt", "application/mspowerpoint");
-            mimeTypes.Add("ppz", "application/mspowerpoint");
-            mimeTypes.Add("pre", "application/x-freelance");
-            mimeTypes.Add("prf", "application/pics-rules");
-            mimeTypes.Add("prt", "application/pro_eng");
-            mimeTypes.Add("ps", "application/postscript");
-            mimeTypes.Add("p", "text/x-pascal");
-            mimeTypes.Add("pub", "application/x-mspublisher");
-            mimeTypes.Add("pvu", "paleovu/x-pv");
-            mimeTypes.Add("pwz", "application/vnd.ms-powerpoint");
-            mimeTypes.Add("pyc", "applicaiton/x-bytecode.python");
-            mimeTypes.Add("py", "text/x-script.phyton");
-            mimeTypes.Add("qcp", "audio/vnd.qcelp");
-            mimeTypes.Add("qd3d", "x-world/x-3dmf");
-            mimeTypes.Add("qd3", "x-world/x-3dmf");
-            mimeTypes.Add("qif", "image/x-quicktime");
-            mimeTypes.Add("qtc", "video/x-qtc");
-            mimeTypes.Add("qtif", "image/x-quicktime");
-            mimeTypes.Add("qti", "image/x-quicktime");
-            mimeTypes.Add("qt", "video/quicktime");
-            mimeTypes.Add("ra", "audio/x-pn-realaudio");
-            mimeTypes.Add("ram", "audio/x-pn-realaudio");
-            mimeTypes.Add("ras", "application/x-cmu-raster");
-            mimeTypes.Add("rast", "image/cmu-raster");
-            mimeTypes.Add("rexx", "text/x-script.rexx");
-            mimeTypes.Add("rf", "image/vnd.rn-realflash");
-            mimeTypes.Add("rgb", "image/x-rgb");
-            mimeTypes.Add("rm", "application/vnd.rn-realmedia");
-            mimeTypes.Add("rmi", "audio/mid");
-            mimeTypes.Add("rmm", "audio/x-pn-realaudio");
-            mimeTypes.Add("rmp", "audio/x-pn-realaudio");
-            mimeTypes.Add("rng", "application/ringing-tones");
-            mimeTypes.Add("rnx", "application/vnd.rn-realplayer");
-            mimeTypes.Add("roff", "application/x-troff");
-            mimeTypes.Add("rp", "image/vnd.rn-realpix");
-            mimeTypes.Add("rpm", "audio/x-pn-realaudio-plugin");
-            mimeTypes.Add("rss", "application/xml");
-            mimeTypes.Add("rtf", "text/richtext");
-            mimeTypes.Add("rt", "text/richtext");
-            mimeTypes.Add("rtx", "text/richtext");
-            mimeTypes.Add("rv", "video/vnd.rn-realvideo");
-            mimeTypes.Add("s3m", "audio/s3m");
-            mimeTypes.Add("sbk", "application/x-tbook");
-            mimeTypes.Add("scd", "application/x-msschedule");
-            mimeTypes.Add("scm", "application/x-lotusscreencam");
-            mimeTypes.Add("sct", "text/scriptlet");
-            mimeTypes.Add("sdml", "text/plain");
-            mimeTypes.Add("sdp", "application/sdp");
-            mimeTypes.Add("sdr", "application/sounder");
-            mimeTypes.Add("sea", "application/sea");
-            mimeTypes.Add("set", "application/set");
-            mimeTypes.Add("setpay", "application/set-payment-initiation");
-            mimeTypes.Add("setreg", "application/set-registration-initiation");
-            mimeTypes.Add("sgml", "text/sgml");
-            mimeTypes.Add("sgm", "text/sgml");
-            mimeTypes.Add("shar", "application/x-bsh");
-            mimeTypes.Add("sh", "text/x-script.sh");
-            mimeTypes.Add("shtml", "text/html");
-            mimeTypes.Add("sid", "audio/x-psid");
-            mimeTypes.Add("sit", "application/x-sit");
-            mimeTypes.Add("skd", "application/x-koan");
-            mimeTypes.Add("skm", "application/x-koan");
-            mimeTypes.Add("skp", "application/x-koan");
-            mimeTypes.Add("skt", "application/x-koan");
-            mimeTypes.Add("sl", "application/x-seelogo");
-            mimeTypes.Add("smi", "application/smil");
-            mimeTypes.Add("smil", "application/smil");
-            mimeTypes.Add("snd", "audio/basic");
-            mimeTypes.Add("sol", "application/solids");
-            mimeTypes.Add("spc", "application/x-pkcs7-certificates");
-            mimeTypes.Add("spl", "application/futuresplash");
-            mimeTypes.Add("spr", "application/x-sprite");
-            mimeTypes.Add("sprite", "application/x-sprite");
-            mimeTypes.Add("spx", "audio/ogg");
-            mimeTypes.Add("src", "application/x-wais-source");
-            mimeTypes.Add("ssi", "text/x-server-parsed-html");
-            mimeTypes.Add("ssm", "application/streamingmedia");
-            mimeTypes.Add("sst", "application/vnd.ms-pki.certstore");
-            mimeTypes.Add("step", "application/step");
-            mimeTypes.Add("s", "text/x-asm");
-            mimeTypes.Add("stl", "application/sla");
-            mimeTypes.Add("stm", "text/html");
-            mimeTypes.Add("stp", "application/step");
-            mimeTypes.Add("sv4cpio", "application/x-sv4cpio");
-            mimeTypes.Add("sv4crc", "application/x-sv4crc");
-            mimeTypes.Add("svf", "image/x-dwg");
-            mimeTypes.Add("svg", "image/svg+xml");
-            mimeTypes.Add("svgz", "image/svg+xml");
-            mimeTypes.Add("svr", "application/x-world");
-            mimeTypes.Add("swf", "application/x-shockwave-flash");
-            mimeTypes.Add("talk", "text/x-speech");
-            mimeTypes.Add("t", "application/x-troff");
-            mimeTypes.Add("tar", "application/x-tar");
-            mimeTypes.Add("tbk", "application/toolbook");
-            mimeTypes.Add("tcl", "text/x-script.tcl");
-            mimeTypes.Add("tcsh", "text/x-script.tcsh");
-            mimeTypes.Add("tex", "application/x-tex");
-            mimeTypes.Add("texi", "application/x-texinfo");
-            mimeTypes.Add("texinfo", "application/x-texinfo");
-            mimeTypes.Add("text", "text/plain");
-            mimeTypes.Add("tgz", "application/x-compressed");
-            mimeTypes.Add("tiff", "image/tiff");
-            mimeTypes.Add("tif", "image/tiff");
-            mimeTypes.Add("torrent", "application/x-bittorrent");
-            mimeTypes.Add("tr", "application/x-troff");
-            mimeTypes.Add("trm", "application/x-msterminal");
-            mimeTypes.Add("tsi", "audio/tsp-audio");
-            mimeTypes.Add("tsp", "audio/tsplayer");
-            mimeTypes.Add("tsv", "text/tab-separated-values");
-            mimeTypes.Add("ttf", "application/x-font-ttf");
-            mimeTypes.Add("turbot", "image/florian");
-            mimeTypes.Add("txt", "text/plain");
-            mimeTypes.Add("uil", "text/x-uil");
-            mimeTypes.Add("uls", "text/iuls");
-            mimeTypes.Add("unis", "text/uri-list");
-            mimeTypes.Add("uni", "text/uri-list");
-            mimeTypes.Add("unv", "application/i-deas");
-            mimeTypes.Add("uris", "text/uri-list");
-            mimeTypes.Add("uri", "text/uri-list");
-            mimeTypes.Add("ustar", "multipart/x-ustar");
-            mimeTypes.Add("uue", "text/x-uuencode");
-            mimeTypes.Add("uu", "text/x-uuencode");
-            mimeTypes.Add("vcd", "application/x-cdlink");
-            mimeTypes.Add("vcf", "text/x-vcard");
-            mimeTypes.Add("vcs", "text/x-vCalendar");
-            mimeTypes.Add("vda", "application/vda");
-            mimeTypes.Add("vdo", "video/vdo");
-            mimeTypes.Add("vew", "application/groupwise");
-            mimeTypes.Add("vivo", "video/vivo");
-            mimeTypes.Add("viv", "video/vivo");
-            mimeTypes.Add("vmd", "application/vocaltec-media-desc");
-            mimeTypes.Add("vmf", "application/vocaltec-media-file");
-            mimeTypes.Add("voc", "audio/voc");
-            mimeTypes.Add("vos", "video/vosaic");
-            mimeTypes.Add("vox", "audio/voxware");
-            mimeTypes.Add("vqe", "audio/x-twinvq-plugin");
-            mimeTypes.Add("vqf", "audio/x-twinvq");
-            mimeTypes.Add("vql", "audio/x-twinvq-plugin");
-            mimeTypes.Add("vrml", "application/x-vrml");
-            mimeTypes.Add("vrt", "x-world/x-vrt");
-            mimeTypes.Add("vsd", "application/x-visio");
-            mimeTypes.Add("vst", "application/x-visio");
-            mimeTypes.Add("vsw", "application/x-visio");
-            mimeTypes.Add("w60", "application/wordperfect6.0");
-            mimeTypes.Add("w61", "application/wordperfect6.1");
-            mimeTypes.Add("w6w", "application/msword");
-            mimeTypes.Add("wav", "audio/wav");
-            mimeTypes.Add("wb1", "application/x-qpro");
-            mimeTypes.Add("wbmp", "image/vnd.wap.wbmp");
-            mimeTypes.Add("wcm", "application/vnd.ms-works");
-            mimeTypes.Add("wdb", "application/vnd.ms-works");
-            mimeTypes.Add("web", "application/vnd.xara");
-            mimeTypes.Add("webm", "video/webm");
-            mimeTypes.Add("wiz", "application/msword");
-            mimeTypes.Add("wk1", "application/x-123");
-            mimeTypes.Add("wks", "application/vnd.ms-works");
-            mimeTypes.Add("wmf", "windows/metafile");
-            mimeTypes.Add("wmlc", "application/vnd.wap.wmlc");
-            mimeTypes.Add("wmlsc", "application/vnd.wap.wmlscriptc");
-            mimeTypes.Add("wmls", "text/vnd.wap.wmlscript");
-            mimeTypes.Add("wml", "text/vnd.wap.wml");
-            mimeTypes.Add("woff", "application/x-woff");
-            mimeTypes.Add("word", "application/msword");
-            mimeTypes.Add("wp5", "application/wordperfect");
-            mimeTypes.Add("wp6", "application/wordperfect");
-            mimeTypes.Add("wp", "application/wordperfect");
-            mimeTypes.Add("wpd", "application/wordperfect");
-            mimeTypes.Add("wps", "application/vnd.ms-works");
-            mimeTypes.Add("wq1", "application/x-lotus");
-            mimeTypes.Add("wri", "application/mswrite");
-            mimeTypes.Add("wrl", "application/x-world");
-            mimeTypes.Add("wrz", "model/vrml");
-            mimeTypes.Add("wsc", "text/scriplet");
-            mimeTypes.Add("wsdl", "application/xml");
-            mimeTypes.Add("wsrc", "application/x-wais-source");
-            mimeTypes.Add("wtk", "application/x-wintalk");
-            mimeTypes.Add("xaf", "x-world/x-vrml");
-            mimeTypes.Add("xaml", "application/xaml+xml");
-            mimeTypes.Add("xap", "application/x-silverlight-app");
-            mimeTypes.Add("xbap", "application/x-ms-xbap");
-            mimeTypes.Add("xbm", "image/x-xbitmap");
-            mimeTypes.Add("xdr", "video/x-amt-demorun");
-            mimeTypes.Add("xgz", "xgl/drawing");
-            mimeTypes.Add("xhtml", "application/xhtml+xml");
-            mimeTypes.Add("xht", "application/xhtml+xml");
-            mimeTypes.Add("xif", "image/vnd.xiff");
-            mimeTypes.Add("xla", "application/excel");
-            mimeTypes.Add("xl", "application/excel");
-            mimeTypes.Add("xlb", "application/excel");
-            mimeTypes.Add("xlc", "application/excel");
-            mimeTypes.Add("xld", "application/excel");
-            mimeTypes.Add("xlk", "application/excel");
-            mimeTypes.Add("xll", "application/excel");
-            mimeTypes.Add("xlm", "application/excel");
-            mimeTypes.Add("xls", "application/excel");
-            mimeTypes.Add("xlt", "application/excel");
-            mimeTypes.Add("xlv", "application/excel");
-            mimeTypes.Add("xlw", "application/excel");
-            mimeTypes.Add("xm", "audio/xm");
-            mimeTypes.Add("xml", "application/xml");
-            mimeTypes.Add("xmz", "xgl/movie");
-            mimeTypes.Add("xof", "x-world/x-vrml");
-            mimeTypes.Add("xpi", "application/x-xpinstall");
-            mimeTypes.Add("xpix", "application/x-vnd.ls-xpix");
-            mimeTypes.Add("xpm", "image/xpm");
-            mimeTypes.Add("x-png", "image/png");
-            mimeTypes.Add("xsd", "application/xml");
-            mimeTypes.Add("xsl", "application/xml");
-            mimeTypes.Add("xsr", "video/x-amt-showrun");
-            mimeTypes.Add("xwd", "image/x-xwd");
-            mimeTypes.Add("xyz", "chemical/x-pdb");
-            mimeTypes.Add("z", "application/x-compressed");
-            mimeTypes.Add("zip", "application/zip");
-            mimeTypes.Add("zsh", "text/x-script.zsh");
+            Types = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Types.Add("323", "text/h323");
+            Types.Add("3dmf", "x-world/x-3dmf");
+            Types.Add("3dm", "x-world/x-3dmf");
+            Types.Add("7z", "application/x-7z-compressed");
+            Types.Add("aab", "application/x-authorware-bin");
+            Types.Add("aam", "application/x-authorware-map");
+            Types.Add("aas", "application/x-authorware-seg");
+            Types.Add("abc", "text/vnd.abc");
+            Types.Add("acgi", "text/html");
+            Types.Add("acx", "application/internet-property-stream");
+            Types.Add("afl", "video/animaflex");
+            Types.Add("ai", "application/postscript");
+            Types.Add("aif", "audio/aiff");
+            Types.Add("aifc", "audio/aiff");
+            Types.Add("aiff", "audio/aiff");
+            Types.Add("aim", "application/x-aim");
+            Types.Add("aip", "text/x-audiosoft-intra");
+            Types.Add("ani", "application/x-navi-animation");
+            Types.Add("aos", "application/x-nokia-9000-communicator-add-on-software");
+            Types.Add("application", "application/x-ms-application");
+            Types.Add("aps", "application/mime");
+            Types.Add("art", "image/x-jg");
+            Types.Add("asf", "video/x-ms-asf");
+            Types.Add("asm", "text/x-asm");
+            Types.Add("asp", "text/asp");
+            Types.Add("asr", "video/x-ms-asf");
+            Types.Add("asx", "application/x-mplayer2");
+            Types.Add("atom", "application/atom.xml");
+            Types.Add("atomcat", "application/atomcat+xml");
+            Types.Add("atomsvc", "application/atomsvc+xml");
+            Types.Add("au", "audio/x-au");
+            Types.Add("avi", "video/avi");
+            Types.Add("avs", "video/avs-video");
+            Types.Add("axs", "application/olescript");
+            Types.Add("bas", "text/plain");
+            Types.Add("bcpio", "application/x-bcpio");
+            Types.Add("bin", "application/octet-stream");
+            Types.Add("bm", "image/bmp");
+            Types.Add("bmp", "image/bmp");
+            Types.Add("boo", "application/book");
+            Types.Add("book", "application/book");
+            Types.Add("boz", "application/x-bzip2");
+            Types.Add("bsh", "application/x-bsh");
+            Types.Add("bz2", "application/x-bzip2");
+            Types.Add("bz", "application/x-bzip");
+            Types.Add("cat", "application/vnd.ms-pki.seccat");
+            Types.Add("ccad", "application/clariscad");
+            Types.Add("cco", "application/x-cocoa");
+            Types.Add("cc", "text/plain");
+            Types.Add("cdf", "application/cdf");
+            Types.Add("cer", "application/pkix-cert");
+            Types.Add("cha", "application/x-chat");
+            Types.Add("chat", "application/x-chat");
+            Types.Add("class", "application/java");
+            Types.Add("clp", "application/x-msclip");
+            Types.Add("cmx", "image/x-cmx");
+            Types.Add("cod", "image/cis-cod");
+            Types.Add("conf", "text/plain");
+            Types.Add("cpio", "application/x-cpio");
+            Types.Add("cpp", "text/plain");
+            Types.Add("cpt", "application/x-cpt");
+            Types.Add("crd", "application/x-mscardfile");
+            Types.Add("crl", "application/pkix-crl");
+            Types.Add("crt", "application/pkix-cert");
+            Types.Add("csh", "application/x-csh");
+            Types.Add("css", "text/css");
+            Types.Add("c", "text/plain");
+            Types.Add("c++", "text/plain");
+            Types.Add("cs", "text/plain");
+            Types.Add("cxx", "text/plain");
+            Types.Add("dcr", "application/x-director");
+            Types.Add("deepv", "application/x-deepv");
+            Types.Add("def", "text/plain");
+            Types.Add("deploy", "application/octet-stream");
+            Types.Add("der", "application/x-x509-ca-cert");
+            Types.Add("dib", "image/bmp");
+            Types.Add("dif", "video/x-dv");
+            Types.Add("dir", "application/x-director");
+            Types.Add("disco", "application/xml");
+            Types.Add("dll", "application/x-msdownload");
+            Types.Add("dl", "video/dl");
+            Types.Add("doc", "application/msword");
+            Types.Add("dot", "application/msword");
+            Types.Add("dp", "application/commonground");
+            Types.Add("drw", "application/drafting");
+            Types.Add("dvi", "application/x-dvi");
+            Types.Add("dv", "video/x-dv");
+            Types.Add("dwf", "drawing/x-dwf (old)");
+            Types.Add("dwg", "application/acad");
+            Types.Add("dxf", "application/dxf");
+            Types.Add("dxr", "application/x-director");
+            Types.Add("elc", "application/x-elc");
+            Types.Add("el", "text/x-script.elisp");
+            Types.Add("eml", "message/rfc822");
+            Types.Add("eot", "application/vnd.bw-fontobject");
+            Types.Add("eps", "application/postscript");
+            Types.Add("es", "application/x-esrehber");
+            Types.Add("etx", "text/x-setext");
+            Types.Add("evy", "application/envoy");
+            Types.Add("exe", "application/octet-stream");
+            Types.Add("f77", "text/plain");
+            Types.Add("f90", "text/plain");
+            Types.Add("fdf", "application/vnd.fdf");
+            Types.Add("fif", "image/fif");
+            Types.Add("fli", "video/fli");
+            Types.Add("flo", "image/florian");
+            Types.Add("flr", "x-world/x-vrml");
+            Types.Add("flx", "text/vnd.fmi.flexstor");
+            Types.Add("fmf", "video/x-atomic3d-feature");
+            Types.Add("for", "text/plain");
+            Types.Add("fpx", "image/vnd.fpx");
+            Types.Add("frl", "application/freeloader");
+            Types.Add("f", "text/plain");
+            Types.Add("funk", "audio/make");
+            Types.Add("g3", "image/g3fax");
+            Types.Add("gif", "image/gif");
+            Types.Add("gl", "video/gl");
+            Types.Add("gsd", "audio/x-gsm");
+            Types.Add("gsm", "audio/x-gsm");
+            Types.Add("gsp", "application/x-gsp");
+            Types.Add("gss", "application/x-gss");
+            Types.Add("gtar", "application/x-gtar");
+            Types.Add("g", "text/plain");
+            Types.Add("gz", "application/x-gzip");
+            Types.Add("gzip", "application/x-gzip");
+            Types.Add("hdf", "application/x-hdf");
+            Types.Add("help", "application/x-helpfile");
+            Types.Add("hgl", "application/vnd.hp-HPGL");
+            Types.Add("hh", "text/plain");
+            Types.Add("hlb", "text/x-script");
+            Types.Add("hlp", "application/x-helpfile");
+            Types.Add("hpg", "application/vnd.hp-HPGL");
+            Types.Add("hpgl", "application/vnd.hp-HPGL");
+            Types.Add("hqx", "application/binhex");
+            Types.Add("hta", "application/hta");
+            Types.Add("htc", "text/x-component");
+            Types.Add("h", "text/plain");
+            Types.Add("htmls", "text/html");
+            Types.Add("html", "text/html");
+            Types.Add("htm", "text/html");
+            Types.Add("htt", "text/webviewhtml");
+            Types.Add("htx", "text/html");
+            Types.Add("ice", "x-conference/x-cooltalk");
+            Types.Add("ico", "image/x-icon");
+            Types.Add("idc", "text/plain");
+            Types.Add("ief", "image/ief");
+            Types.Add("iefs", "image/ief");
+            Types.Add("iges", "application/iges");
+            Types.Add("igs", "application/iges");
+            Types.Add("iii", "application/x-iphone");
+            Types.Add("ima", "application/x-ima");
+            Types.Add("imap", "application/x-httpd-imap");
+            Types.Add("inf", "application/inf");
+            Types.Add("ins", "application/x-internett-signup");
+            Types.Add("ip", "application/x-ip2");
+            Types.Add("isp", "application/x-internet-signup");
+            Types.Add("isu", "video/x-isvideo");
+            Types.Add("it", "audio/it");
+            Types.Add("iv", "application/x-inventor");
+            Types.Add("ivf", "video/x-ivf");
+            Types.Add("ivr", "i-world/i-vrml");
+            Types.Add("ivy", "application/x-livescreen");
+            Types.Add("jam", "audio/x-jam");
+            Types.Add("java", "text/plain");
+            Types.Add("jav", "text/plain");
+            Types.Add("jcm", "application/x-java-commerce");
+            Types.Add("jfif", "image/jpeg");
+            Types.Add("jfif-tbnl", "image/jpeg");
+            Types.Add("jpeg", "image/jpeg");
+            Types.Add("jpe", "image/jpeg");
+            Types.Add("jpg", "image/jpeg");
+            Types.Add("jps", "image/x-jps");
+            Types.Add("js", "application/x-javascript");
+            Types.Add("json", "application/application/json");
+            Types.Add("jut", "image/jutvision");
+            Types.Add("kar", "audio/midi");
+            Types.Add("ksh", "text/x-script.ksh");
+            Types.Add("la", "audio/nspaudio");
+            Types.Add("lam", "audio/x-liveaudio");
+            Types.Add("latex", "application/x-latex");
+            Types.Add("list", "text/plain");
+            Types.Add("lma", "audio/nspaudio");
+            Types.Add("log", "text/plain");
+            Types.Add("lsp", "application/x-lisp");
+            Types.Add("lst", "text/plain");
+            Types.Add("lsx", "text/x-la-asf");
+            Types.Add("ltx", "application/x-latex");
+            Types.Add("m13", "application/x-msmediaview");
+            Types.Add("m14", "application/x-msmediaview");
+            Types.Add("m1v", "video/mpeg");
+            Types.Add("m2a", "audio/mpeg");
+            Types.Add("m2v", "video/mpeg");
+            Types.Add("m3u", "audio/x-mpequrl");
+            Types.Add("m4u", "video/x-mpegurl");
+            Types.Add("m4v", "video/mp4");
+            Types.Add("m4a", "audio/mp4");
+            Types.Add("m4r", "audio/mp4");
+            Types.Add("m4b", "audio/mp4");
+            Types.Add("m4p", "audio/mp4");
+            Types.Add("man", "application/x-troff-man");
+            Types.Add("manifest", "application/x-ms-manifest");
+            Types.Add("map", "application/x-navimap");
+            Types.Add("mar", "text/plain");
+            Types.Add("mbd", "application/mbedlet");
+            Types.Add("mc$", "application/x-magic-cap-package-1.0");
+            Types.Add("mcd", "application/mcad");
+            Types.Add("mcf", "image/vasa");
+            Types.Add("mcp", "application/netmc");
+            Types.Add("mdb", "application/x-msaccess");
+            Types.Add("me", "application/x-troff-me");
+            Types.Add("mht", "message/rfc822");
+            Types.Add("mhtml", "message/rfc822");
+            Types.Add("mid", "audio/midi");
+            Types.Add("midi", "audio/midi");
+            Types.Add("mif", "application/x-mif");
+            Types.Add("mime", "message/rfc822");
+            Types.Add("mjf", "audio/x-vnd.AudioExplosion.MjuiceMediaFile");
+            Types.Add("mjpg", "video/x-motion-jpeg");
+            Types.Add("mm", "application/base64");
+            Types.Add("mme", "application/base64");
+            Types.Add("mny", "application/x-msmoney");
+            Types.Add("mod", "audio/mod");
+            Types.Add("moov", "video/quicktime");
+            Types.Add("movie", "video/x-sgi-movie");
+            Types.Add("mov", "video/quicktime");
+            Types.Add("mp2", "video/mpeg");
+            Types.Add("mp3", "audio/mpeg3");
+            Types.Add("mp4", "video/mp4");
+            Types.Add("mp4v", "video/mp4");
+            Types.Add("mpa", "audio/mpeg");
+            Types.Add("mpc", "application/x-project");
+            Types.Add("mpeg", "video/mpeg");
+            Types.Add("mpe", "video/mpeg");
+            Types.Add("mpga", "audio/mpeg");
+            Types.Add("mpg", "video/mpeg");
+            Types.Add("mpg4", "video/mp4");
+            Types.Add("mpp", "application/vnd.ms-project");
+            Types.Add("mpt", "application/x-project");
+            Types.Add("mpv2", "video/mpeg");
+            Types.Add("mpv", "application/x-project");
+            Types.Add("mpx", "application/x-project");
+            Types.Add("mrc", "application/marc");
+            Types.Add("ms", "application/x-troff-ms");
+            Types.Add("m", "text/plain");
+            Types.Add("mvb", "application/x-msmediaview");
+            Types.Add("mv", "video/x-sgi-movie");
+            Types.Add("my", "audio/make");
+            Types.Add("mzz", "application/x-vnd.AudioExplosion.mzz");
+            Types.Add("nap", "image/naplps");
+            Types.Add("naplps", "image/naplps");
+            Types.Add("nc", "application/x-netcdf");
+            Types.Add("ncm", "application/vnd.nokia.configuration-message");
+            Types.Add("niff", "image/x-niff");
+            Types.Add("nif", "image/x-niff");
+            Types.Add("nix", "application/x-mix-transfer");
+            Types.Add("nsc", "application/x-conference");
+            Types.Add("nvd", "application/x-navidoc");
+            Types.Add("nws", "message/rfc822");
+            Types.Add("oda", "application/oda");
+            Types.Add("ods", "application/oleobject");
+            Types.Add("oga", "audio/ogg");
+            Types.Add("ogg", "audio/ogg");
+            Types.Add("ogv", "video/ogg");
+            Types.Add("omc", "application/x-omc");
+            Types.Add("omcd", "application/x-omcdatamaker");
+            Types.Add("omcr", "application/x-omcregerator");
+            Types.Add("otf", "application/x-font-otf");
+            Types.Add("p10", "application/pkcs10");
+            Types.Add("p12", "application/pkcs-12");
+            Types.Add("p7a", "application/x-pkcs7-signature");
+            Types.Add("p7b", "application/x-pkcs7-certificates");
+            Types.Add("p7c", "application/pkcs7-mime");
+            Types.Add("p7m", "application/pkcs7-mime");
+            Types.Add("p7r", "application/x-pkcs7-certreqresp");
+            Types.Add("p7s", "application/pkcs7-signature");
+            Types.Add("part", "application/pro_eng");
+            Types.Add("pas", "text/pascal");
+            Types.Add("pbm", "image/x-portable-bitmap");
+            Types.Add("pcl", "application/x-pcl");
+            Types.Add("pct", "image/x-pict");
+            Types.Add("pcx", "image/x-pcx");
+            Types.Add("pdb", "chemical/x-pdb");
+            Types.Add("pdf", "application/pdf");
+            Types.Add("pfunk", "audio/make");
+            Types.Add("pfx", "application/x-pkcs12");
+            Types.Add("pgm", "image/x-portable-graymap");
+            Types.Add("pic", "image/pict");
+            Types.Add("pict", "image/pict");
+            Types.Add("pkg", "application/x-newton-compatible-pkg");
+            Types.Add("pko", "application/vnd.ms-pki.pko");
+            Types.Add("pl", "text/plain");
+            Types.Add("plx", "application/x-PiXCLscript");
+            Types.Add("pm4", "application/x-pagemaker");
+            Types.Add("pm5", "application/x-pagemaker");
+            Types.Add("pma", "application/x-perfmon");
+            Types.Add("pmc", "application/x-perfmon");
+            Types.Add("pm", "image/x-xpixmap");
+            Types.Add("pml", "application/x-perfmon");
+            Types.Add("pmr", "application/x-perfmon");
+            Types.Add("pmw", "application/x-perfmon");
+            Types.Add("png", "image/png");
+            Types.Add("pnm", "application/x-portable-anymap");
+            Types.Add("pot", "application/mspowerpoint");
+            Types.Add("pov", "model/x-pov");
+            Types.Add("ppa", "application/vnd.ms-powerpoint");
+            Types.Add("ppm", "image/x-portable-pixmap");
+            Types.Add("pps", "application/mspowerpoint");
+            Types.Add("ppt", "application/mspowerpoint");
+            Types.Add("ppz", "application/mspowerpoint");
+            Types.Add("pre", "application/x-freelance");
+            Types.Add("prf", "application/pics-rules");
+            Types.Add("prt", "application/pro_eng");
+            Types.Add("ps", "application/postscript");
+            Types.Add("p", "text/x-pascal");
+            Types.Add("pub", "application/x-mspublisher");
+            Types.Add("pvu", "paleovu/x-pv");
+            Types.Add("pwz", "application/vnd.ms-powerpoint");
+            Types.Add("pyc", "applicaiton/x-bytecode.python");
+            Types.Add("py", "text/x-script.phyton");
+            Types.Add("qcp", "audio/vnd.qcelp");
+            Types.Add("qd3d", "x-world/x-3dmf");
+            Types.Add("qd3", "x-world/x-3dmf");
+            Types.Add("qif", "image/x-quicktime");
+            Types.Add("qtc", "video/x-qtc");
+            Types.Add("qtif", "image/x-quicktime");
+            Types.Add("qti", "image/x-quicktime");
+            Types.Add("qt", "video/quicktime");
+            Types.Add("ra", "audio/x-pn-realaudio");
+            Types.Add("ram", "audio/x-pn-realaudio");
+            Types.Add("ras", "application/x-cmu-raster");
+            Types.Add("rast", "image/cmu-raster");
+            Types.Add("rexx", "text/x-script.rexx");
+            Types.Add("rf", "image/vnd.rn-realflash");
+            Types.Add("rgb", "image/x-rgb");
+            Types.Add("rm", "application/vnd.rn-realmedia");
+            Types.Add("rmi", "audio/mid");
+            Types.Add("rmm", "audio/x-pn-realaudio");
+            Types.Add("rmp", "audio/x-pn-realaudio");
+            Types.Add("rng", "application/ringing-tones");
+            Types.Add("rnx", "application/vnd.rn-realplayer");
+            Types.Add("roff", "application/x-troff");
+            Types.Add("rp", "image/vnd.rn-realpix");
+            Types.Add("rpm", "audio/x-pn-realaudio-plugin");
+            Types.Add("rss", "application/xml");
+            Types.Add("rtf", "text/richtext");
+            Types.Add("rt", "text/richtext");
+            Types.Add("rtx", "text/richtext");
+            Types.Add("rv", "video/vnd.rn-realvideo");
+            Types.Add("s3m", "audio/s3m");
+            Types.Add("sbk", "application/x-tbook");
+            Types.Add("scd", "application/x-msschedule");
+            Types.Add("scm", "application/x-lotusscreencam");
+            Types.Add("sct", "text/scriptlet");
+            Types.Add("sdml", "text/plain");
+            Types.Add("sdp", "application/sdp");
+            Types.Add("sdr", "application/sounder");
+            Types.Add("sea", "application/sea");
+            Types.Add("set", "application/set");
+            Types.Add("setpay", "application/set-payment-initiation");
+            Types.Add("setreg", "application/set-registration-initiation");
+            Types.Add("sgml", "text/sgml");
+            Types.Add("sgm", "text/sgml");
+            Types.Add("shar", "application/x-bsh");
+            Types.Add("sh", "text/x-script.sh");
+            Types.Add("shtml", "text/html");
+            Types.Add("sid", "audio/x-psid");
+            Types.Add("sit", "application/x-sit");
+            Types.Add("skd", "application/x-koan");
+            Types.Add("skm", "application/x-koan");
+            Types.Add("skp", "application/x-koan");
+            Types.Add("skt", "application/x-koan");
+            Types.Add("sl", "application/x-seelogo");
+            Types.Add("smi", "application/smil");
+            Types.Add("smil", "application/smil");
+            Types.Add("snd", "audio/basic");
+            Types.Add("sol", "application/solids");
+            Types.Add("spc", "application/x-pkcs7-certificates");
+            Types.Add("spl", "application/futuresplash");
+            Types.Add("spr", "application/x-sprite");
+            Types.Add("sprite", "application/x-sprite");
+            Types.Add("spx", "audio/ogg");
+            Types.Add("src", "application/x-wais-source");
+            Types.Add("ssi", "text/x-server-parsed-html");
+            Types.Add("ssm", "application/streamingmedia");
+            Types.Add("sst", "application/vnd.ms-pki.certstore");
+            Types.Add("step", "application/step");
+            Types.Add("s", "text/x-asm");
+            Types.Add("stl", "application/sla");
+            Types.Add("stm", "text/html");
+            Types.Add("stp", "application/step");
+            Types.Add("sv4cpio", "application/x-sv4cpio");
+            Types.Add("sv4crc", "application/x-sv4crc");
+            Types.Add("svf", "image/x-dwg");
+            Types.Add("svg", "image/svg+xml");
+            Types.Add("svgz", "image/svg+xml");
+            Types.Add("svr", "application/x-world");
+            Types.Add("swf", "application/x-shockwave-flash");
+            Types.Add("talk", "text/x-speech");
+            Types.Add("t", "application/x-troff");
+            Types.Add("tar", "application/x-tar");
+            Types.Add("tbk", "application/toolbook");
+            Types.Add("tcl", "text/x-script.tcl");
+            Types.Add("tcsh", "text/x-script.tcsh");
+            Types.Add("tex", "application/x-tex");
+            Types.Add("texi", "application/x-texinfo");
+            Types.Add("texinfo", "application/x-texinfo");
+            Types.Add("text", "text/plain");
+            Types.Add("tgz", "application/x-compressed");
+            Types.Add("tiff", "image/tiff");
+            Types.Add("tif", "image/tiff");
+            Types.Add("torrent", "application/x-bittorrent");
+            Types.Add("tr", "application/x-troff");
+            Types.Add("trm", "application/x-msterminal");
+            Types.Add("tsi", "audio/tsp-audio");
+            Types.Add("tsp", "audio/tsplayer");
+            Types.Add("tsv", "text/tab-separated-values");
+            Types.Add("ttf", "application/x-font-ttf");
+            Types.Add("turbot", "image/florian");
+            Types.Add("txt", "text/plain");
+            Types.Add("uil", "text/x-uil");
+            Types.Add("uls", "text/iuls");
+            Types.Add("unis", "text/uri-list");
+            Types.Add("uni", "text/uri-list");
+            Types.Add("unv", "application/i-deas");
+            Types.Add("uris", "text/uri-list");
+            Types.Add("uri", "text/uri-list");
+            Types.Add("ustar", "multipart/x-ustar");
+            Types.Add("uue", "text/x-uuencode");
+            Types.Add("uu", "text/x-uuencode");
+            Types.Add("vcd", "application/x-cdlink");
+            Types.Add("vcf", "text/x-vcard");
+            Types.Add("vcs", "text/x-vCalendar");
+            Types.Add("vda", "application/vda");
+            Types.Add("vdo", "video/vdo");
+            Types.Add("vew", "application/groupwise");
+            Types.Add("vivo", "video/vivo");
+            Types.Add("viv", "video/vivo");
+            Types.Add("vmd", "application/vocaltec-media-desc");
+            Types.Add("vmf", "application/vocaltec-media-file");
+            Types.Add("voc", "audio/voc");
+            Types.Add("vos", "video/vosaic");
+            Types.Add("vox", "audio/voxware");
+            Types.Add("vqe", "audio/x-twinvq-plugin");
+            Types.Add("vqf", "audio/x-twinvq");
+            Types.Add("vql", "audio/x-twinvq-plugin");
+            Types.Add("vrml", "application/x-vrml");
+            Types.Add("vrt", "x-world/x-vrt");
+            Types.Add("vsd", "application/x-visio");
+            Types.Add("vst", "application/x-visio");
+            Types.Add("vsw", "application/x-visio");
+            Types.Add("w60", "application/wordperfect6.0");
+            Types.Add("w61", "application/wordperfect6.1");
+            Types.Add("w6w", "application/msword");
+            Types.Add("wav", "audio/wav");
+            Types.Add("wb1", "application/x-qpro");
+            Types.Add("wbmp", "image/vnd.wap.wbmp");
+            Types.Add("wcm", "application/vnd.ms-works");
+            Types.Add("wdb", "application/vnd.ms-works");
+            Types.Add("web", "application/vnd.xara");
+            Types.Add("webm", "video/webm");
+            Types.Add("wiz", "application/msword");
+            Types.Add("wk1", "application/x-123");
+            Types.Add("wks", "application/vnd.ms-works");
+            Types.Add("wmf", "windows/metafile");
+            Types.Add("wmlc", "application/vnd.wap.wmlc");
+            Types.Add("wmlsc", "application/vnd.wap.wmlscriptc");
+            Types.Add("wmls", "text/vnd.wap.wmlscript");
+            Types.Add("wml", "text/vnd.wap.wml");
+            Types.Add("woff", "application/x-woff");
+            Types.Add("word", "application/msword");
+            Types.Add("wp5", "application/wordperfect");
+            Types.Add("wp6", "application/wordperfect");
+            Types.Add("wp", "application/wordperfect");
+            Types.Add("wpd", "application/wordperfect");
+            Types.Add("wps", "application/vnd.ms-works");
+            Types.Add("wq1", "application/x-lotus");
+            Types.Add("wri", "application/mswrite");
+            Types.Add("wrl", "application/x-world");
+            Types.Add("wrz", "model/vrml");
+            Types.Add("wsc", "text/scriplet");
+            Types.Add("wsdl", "application/xml");
+            Types.Add("wsrc", "application/x-wais-source");
+            Types.Add("wtk", "application/x-wintalk");
+            Types.Add("xaf", "x-world/x-vrml");
+            Types.Add("xaml", "application/xaml+xml");
+            Types.Add("xap", "application/x-silverlight-app");
+            Types.Add("xbap", "application/x-ms-xbap");
+            Types.Add("xbm", "image/x-xbitmap");
+            Types.Add("xdr", "video/x-amt-demorun");
+            Types.Add("xgz", "xgl/drawing");
+            Types.Add("xhtml", "application/xhtml+xml");
+            Types.Add("xht", "application/xhtml+xml");
+            Types.Add("xif", "image/vnd.xiff");
+            Types.Add("xla", "application/excel");
+            Types.Add("xl", "application/excel");
+            Types.Add("xlb", "application/excel");
+            Types.Add("xlc", "application/excel");
+            Types.Add("xld", "application/excel");
+            Types.Add("xlk", "application/excel");
+            Types.Add("xll", "application/excel");
+            Types.Add("xlm", "application/excel");
+            Types.Add("xls", "application/excel");
+            Types.Add("xlt", "application/excel");
+            Types.Add("xlv", "application/excel");
+            Types.Add("xlw", "application/excel");
+            Types.Add("xm", "audio/xm");
+            Types.Add("xml", "application/xml");
+            Types.Add("xmz", "xgl/movie");
+            Types.Add("xof", "x-world/x-vrml");
+            Types.Add("xpi", "application/x-xpinstall");
+            Types.Add("xpix", "application/x-vnd.ls-xpix");
+            Types.Add("xpm", "image/xpm");
+            Types.Add("x-png", "image/png");
+            Types.Add("xsd", "application/xml");
+            Types.Add("xsl", "application/xml");
+            Types.Add("xsr", "video/x-amt-showrun");
+            Types.Add("xwd", "image/x-xwd");
+            Types.Add("xyz", "chemical/x-pdb");
+            Types.Add("z", "application/x-compressed");
+            Types.Add("zip", "application/zip");
+            Types.Add("zsh", "text/x-script.zsh");
 
             // Office Formats
-            mimeTypes.Add("docm", "application/vnd.ms-word.document.macroEnabled.12");
-            mimeTypes.Add("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-            mimeTypes.Add("dotm", "application/vnd.ms-word.template.macroEnabled.12");
-            mimeTypes.Add("dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template");
-            mimeTypes.Add("potm", "application/vnd.ms-powerpoint.template.macroEnabled.12");
-            mimeTypes.Add("potx", "application/vnd.openxmlformats-officedocument.presentationml.template");
-            mimeTypes.Add("ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12");
-            mimeTypes.Add("ppsm", "application/vnd.ms-powerpoint.slideshow.macroEnabled.12");
-            mimeTypes.Add("ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow");
-            mimeTypes.Add("pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.12");
-            mimeTypes.Add("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
-            mimeTypes.Add("xlam", "application/vnd.ms-excel.addin.macroEnabled.12");
-            mimeTypes.Add("xlsb", "application/vnd.ms-excel.sheet.binary.macroEnabled.12");
-            mimeTypes.Add("xlsm", "application/vnd.ms-excel.sheet.macroEnabled.12");
-            mimeTypes.Add("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            mimeTypes.Add("xltm", "application/vnd.ms-excel.template.macroEnabled.12");
-            mimeTypes.Add("xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template");
+            Types.Add("docm", "application/vnd.ms-word.document.macroEnabled.12");
+            Types.Add("docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+            Types.Add("dotm", "application/vnd.ms-word.template.macroEnabled.12");
+            Types.Add("dotx", "application/vnd.openxmlformats-officedocument.wordprocessingml.template");
+            Types.Add("potm", "application/vnd.ms-powerpoint.template.macroEnabled.12");
+            Types.Add("potx", "application/vnd.openxmlformats-officedocument.presentationml.template");
+            Types.Add("ppam", "application/vnd.ms-powerpoint.addin.macroEnabled.12");
+            Types.Add("ppsm", "application/vnd.ms-powerpoint.slideshow.macroEnabled.12");
+            Types.Add("ppsx", "application/vnd.openxmlformats-officedocument.presentationml.slideshow");
+            Types.Add("pptm", "application/vnd.ms-powerpoint.presentation.macroEnabled.12");
+            Types.Add("pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+            Types.Add("xlam", "application/vnd.ms-excel.addin.macroEnabled.12");
+            Types.Add("xlsb", "application/vnd.ms-excel.sheet.binary.macroEnabled.12");
+            Types.Add("xlsm", "application/vnd.ms-excel.sheet.macroEnabled.12");
+            Types.Add("xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            Types.Add("xltm", "application/vnd.ms-excel.template.macroEnabled.12");
+            Types.Add("xltx", "application/vnd.openxmlformats-officedocument.spreadsheetml.template");
         }
 
         public static string GetMimeType(string fileName)
@@ -1722,360 +1474,19 @@ namespace TinyHttp
             if (fileName == null) { return null; }
             string result = null;
             var dot = fileName.LastIndexOf('.');
-            if (dot != -1 && fileName.Length > dot + 1) { mimeTypes.TryGetValue(fileName.Substring(dot + 1), out result); }
+            if (dot != -1 && fileName.Length > dot + 1) { Types.TryGetValue(fileName.Substring(dot + 1), out result); }
             return result ?? "application/octet-stream";
         }
     }
     #endregion
 
-    #region UncloseableStreamWrapper
+    #region Extensions
     public static class StreamExtensions
     {
         public static void WriteString(this Stream stream, string s)
         {
             var writer = new StreamWriter(stream) {AutoFlush = true};
             writer.Write(s);
-        }
-
-        public static Stream AsUncloseable(this Stream stream)
-        {
-            return new UnclosableStreamWrapper(stream);
-        }
-    }
-
-    /*
-    Copyright (c) 2010 Andreas Håkansson, Steven Robbins and contributors
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in
-    all copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-    THE SOFTWARE.
-    */
-    /// <summary>
-    /// To close the unclosable stream..
-    /// To fight the unbeatable foe..
-    /// To bear with unbearable sorrow..
-    /// To run where the brave dare not go..
-    /// </summary>
-    public class UnclosableStreamWrapper : Stream, IDisposable
-    {
-        /// <summary>
-        /// The wrapped stream
-        /// </summary>
-        private readonly Stream baseStream;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="UnclosableStreamWrapper"/> class.
-        /// </summary>
-        /// <param name="baseStream">The base stream to wrap.</param>
-        public UnclosableStreamWrapper(Stream baseStream)
-        {
-            if (baseStream == null)
-            {
-                throw new ArgumentNullException("baseStream");
-            }
-
-            this.baseStream = baseStream;
-        }
-
-        /// <summary>
-        /// Gets the base stream that the wrapper is wrapping
-        /// </summary>
-        public Stream BaseStream
-        {
-            get
-            {
-                return this.baseStream;
-            }
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, gets a value indicating whether the current stream supports reading.
-        /// </summary>
-        /// <returns>
-        /// true if the stream supports reading; otherwise, false.
-        /// </returns>
-        /// <filterpriority>1</filterpriority>
-        public override bool CanRead
-        {
-            get
-            {
-                return this.baseStream.CanRead;
-            }
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, gets a value indicating whether the current stream supports seeking.
-        /// </summary>
-        /// <returns>
-        /// true if the stream supports seeking; otherwise, false.
-        /// </returns>
-        /// <filterpriority>1</filterpriority>
-        public override bool CanSeek
-        {
-            get
-            {
-                return this.baseStream.CanSeek;
-            }
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, gets a value indicating whether the current stream supports writing.
-        /// </summary>
-        /// <returns>
-        /// true if the stream supports writing; otherwise, false.
-        /// </returns>
-        /// <filterpriority>1</filterpriority>
-        public override bool CanWrite
-        {
-            get
-            {
-                return this.baseStream.CanWrite;
-            }
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, gets the length in bytes of the stream.
-        /// </summary>
-        /// <returns>
-        /// A long value representing the length of the stream in bytes.
-        /// </returns>
-        /// <exception cref="T:System.NotSupportedException">A class derived from Stream does not support seeking. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>1</filterpriority>
-        public override long Length
-        {
-            get
-            {
-                return this.baseStream.Length;
-            }
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, gets or sets the position within the current stream.
-        /// </summary>
-        /// <returns>
-        /// The current position within the stream.
-        /// </returns>
-        /// <exception cref="T:System.IO.IOException">An I/O error occurs. </exception><exception cref="T:System.NotSupportedException">The stream does not support seeking. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>1</filterpriority>
-        public override long Position
-        {
-            get
-            {
-                return this.baseStream.Position;
-            }
-
-            set
-            {
-                this.baseStream.Position = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets a value that determines whether the current stream can time out.
-        /// </summary>
-        /// <returns>
-        /// A value that determines whether the current stream can time out.
-        /// </returns>
-        /// <filterpriority>2</filterpriority>
-        public override bool CanTimeout
-        {
-            get
-            {
-                return this.baseStream.CanTimeout;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value, in miliseconds, that determines how long the stream will attempt to read before timing out. 
-        /// </summary>
-        /// <returns>
-        /// A value, in miliseconds, that determines how long the stream will attempt to read before timing out.
-        /// </returns>
-        /// <exception cref="T:System.InvalidOperationException">The <see cref="P:System.IO.Stream.ReadTimeout"/> method always throws an <see cref="T:System.InvalidOperationException"/>. </exception><filterpriority>2</filterpriority>
-        public override int ReadTimeout
-        {
-            get
-            {
-                return this.baseStream.ReadTimeout;
-            }
-
-            set
-            {
-                this.baseStream.ReadTimeout = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a value, in miliseconds, that determines how long the stream will attempt to write before timing out. 
-        /// </summary>
-        /// <returns>
-        /// A value, in miliseconds, that determines how long the stream will attempt to write before timing out.
-        /// </returns>
-        /// <exception cref="T:System.InvalidOperationException">The <see cref="P:System.IO.Stream.WriteTimeout"/> method always throws an <see cref="T:System.InvalidOperationException"/>. </exception><filterpriority>2</filterpriority>
-        public override int WriteTimeout
-        {
-            get
-            {
-                return this.baseStream.WriteTimeout;
-            }
-
-            set
-            {
-                this.baseStream.WriteTimeout = value;
-            }
-        }
-
-        /// <summary>
-        /// Closes the current stream and releases any resources (such as sockets and file handles) associated with the current stream.
-        /// </summary>
-        /// <filterpriority>1</filterpriority>
-        public override void Close()
-        {
-        }
-
-        /// <summary>
-        /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
-        /// </summary>
-        /// <filterpriority>2</filterpriority>
-        public new void Dispose()
-        {
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, clears all buffers for this stream and causes any buffered data to be written to the underlying device.
-        /// </summary>
-        /// <exception cref="T:System.IO.IOException">An I/O error occurs. </exception><filterpriority>2</filterpriority>
-        public override void Flush()
-        {
-            this.baseStream.Flush();
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, sets the position within the current stream.
-        /// </summary>
-        /// <returns>
-        /// The new position within the current stream.
-        /// </returns>
-        /// <param name="offset">A byte offset relative to the <paramref name="origin"/> parameter. </param><param name="origin">A value of type <see cref="T:System.IO.SeekOrigin"/> indicating the reference point used to obtain the new position. </param><exception cref="T:System.IO.IOException">An I/O error occurs. </exception><exception cref="T:System.NotSupportedException">The stream does not support seeking, such as if the stream is constructed from a pipe or console output. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>1</filterpriority>
-        public override long Seek(long offset, SeekOrigin origin)
-        {
-            return this.baseStream.Seek(offset, origin);
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, sets the length of the current stream.
-        /// </summary>
-        /// <param name="value">The desired length of the current stream in bytes. </param><exception cref="T:System.IO.IOException">An I/O error occurs. </exception><exception cref="T:System.NotSupportedException">The stream does not support both writing and seeking, such as if the stream is constructed from a pipe or console output. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>2</filterpriority>
-        public override void SetLength(long value)
-        {
-            this.baseStream.SetLength(value);
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, reads a sequence of bytes from the current stream and advances the position within the stream by the number of bytes read.
-        /// </summary>
-        /// <returns>
-        /// The total number of bytes read into the buffer. This can be less than the number of bytes requested if that many bytes are not currently available, or zero (0) if the end of the stream has been reached.
-        /// </returns>
-        /// <param name="buffer">An array of bytes. When this method returns, the buffer contains the specified byte array with the values between <paramref name="offset"/> and (<paramref name="offset"/> + <paramref name="count"/> - 1) replaced by the bytes read from the current source. </param><param name="offset">The zero-based byte offset in <paramref name="buffer"/> at which to begin storing the data read from the current stream. </param><param name="count">The maximum number of bytes to be read from the current stream. </param><exception cref="T:System.ArgumentException">The sum of <paramref name="offset"/> and <paramref name="count"/> is larger than the buffer length. </exception><exception cref="T:System.ArgumentNullException"><paramref name="buffer"/> is null. </exception><exception cref="T:System.ArgumentOutOfRangeException"><paramref name="offset"/> or <paramref name="count"/> is negative. </exception><exception cref="T:System.IO.IOException">An I/O error occurs. </exception><exception cref="T:System.NotSupportedException">The stream does not support reading. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>1</filterpriority>
-        public override int Read(byte[] buffer, int offset, int count)
-        {
-            return this.baseStream.Read(buffer, offset, count);
-        }
-
-        /// <summary>
-        /// When overridden in a derived class, writes a sequence of bytes to the current stream and advances the current position within this stream by the number of bytes written.
-        /// </summary>
-        /// <param name="buffer">An array of bytes. This method copies <paramref name="count"/> bytes from <paramref name="buffer"/> to the current stream. </param><param name="offset">The zero-based byte offset in <paramref name="buffer"/> at which to begin copying bytes to the current stream. </param><param name="count">The number of bytes to be written to the current stream. </param><exception cref="T:System.ArgumentException">The sum of <paramref name="offset"/> and <paramref name="count"/> is greater than the buffer length. </exception><exception cref="T:System.ArgumentNullException"><paramref name="buffer"/> is null. </exception><exception cref="T:System.ArgumentOutOfRangeException"><paramref name="offset"/> or <paramref name="count"/> is negative. </exception><exception cref="T:System.IO.IOException">An I/O error occurs. </exception><exception cref="T:System.NotSupportedException">The stream does not support writing. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>1</filterpriority>
-        public override void Write(byte[] buffer, int offset, int count)
-        {
-            this.baseStream.Write(buffer, offset, count);
-        }
-
-        /// <summary>
-        /// Begins an asynchronous read operation.
-        /// </summary>
-        /// <returns>
-        /// An <see cref="T:System.IAsyncResult"/> that represents the asynchronous read, which could still be pending.
-        /// </returns>
-        /// <param name="buffer">The buffer to read the data into. </param><param name="offset">The byte offset in <paramref name="buffer"/> at which to begin writing data read from the stream. </param><param name="count">The maximum number of bytes to read. </param><param name="callback">An optional asynchronous callback, to be called when the read is complete. </param><param name="state">A user-provided object that distinguishes this particular asynchronous read request from other requests. </param><exception cref="T:System.IO.IOException">Attempted an asynchronous read past the end of the stream, or a disk error occurs. </exception><exception cref="T:System.ArgumentException">One or more of the arguments is invalid. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><exception cref="T:System.NotSupportedException">The current Stream implementation does not support the read operation. </exception><filterpriority>2</filterpriority>
-        public override IAsyncResult BeginRead(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
-        {
-            return this.baseStream.BeginRead(buffer, offset, count, callback, state);
-        }
-
-        /// <summary>
-        /// Begins an asynchronous write operation.
-        /// </summary>
-        /// <returns>
-        /// An IAsyncResult that represents the asynchronous write, which could still be pending.
-        /// </returns>
-        /// <param name="buffer">The buffer to write data from. </param><param name="offset">The byte offset in <paramref name="buffer"/> from which to begin writing. </param><param name="count">The maximum number of bytes to write. </param><param name="callback">An optional asynchronous callback, to be called when the write is complete. </param><param name="state">A user-provided object that distinguishes this particular asynchronous write request from other requests. </param><exception cref="T:System.IO.IOException">Attempted an asynchronous write past the end of the stream, or a disk error occurs. </exception><exception cref="T:System.ArgumentException">One or more of the arguments is invalid. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><exception cref="T:System.NotSupportedException">The current Stream implementation does not support the write operation. </exception><filterpriority>2</filterpriority>
-        public override IAsyncResult BeginWrite(byte[] buffer, int offset, int count, AsyncCallback callback, object state)
-        {
-            return this.baseStream.BeginWrite(buffer, offset, count, callback, state);
-        }
-
-        /// <summary>
-        /// Waits for the pending asynchronous read to complete.
-        /// </summary>
-        /// <returns>
-        /// The number of bytes read from the stream, between zero (0) and the number of bytes you requested. Streams return zero (0) only at the end of the stream, otherwise, they should block until at least one byte is available.
-        /// </returns>
-        /// <param name="asyncResult">The reference to the pending asynchronous request to finish. </param><exception cref="T:System.ArgumentNullException"><paramref name="asyncResult"/> is null. </exception><exception cref="T:System.ArgumentException"><paramref name="asyncResult"/> did not originate from a <see cref="M:System.IO.Stream.BeginRead(System.Byte[],System.Int32,System.Int32,System.AsyncCallback,System.Object)"/> method on the current stream. </exception><exception cref="T:System.IO.IOException">The stream is closed or an internal error has occurred.</exception><filterpriority>2</filterpriority>
-        public override int EndRead(IAsyncResult asyncResult)
-        {
-            return this.baseStream.EndRead(asyncResult);
-        }
-
-        /// <summary>
-        /// Ends an asynchronous write operation.
-        /// </summary>
-        /// <param name="asyncResult">A reference to the outstanding asynchronous I/O request. </param><exception cref="T:System.ArgumentNullException"><paramref name="asyncResult"/> is null. </exception><exception cref="T:System.ArgumentException"><paramref name="asyncResult"/> did not originate from a <see cref="M:System.IO.Stream.BeginWrite(System.Byte[],System.Int32,System.Int32,System.AsyncCallback,System.Object)"/> method on the current stream. </exception><exception cref="T:System.IO.IOException">The stream is closed or an internal error has occurred.</exception><filterpriority>2</filterpriority>
-        public override void EndWrite(IAsyncResult asyncResult)
-        {
-            this.baseStream.EndWrite(asyncResult);
-        }
-
-        /// <summary>
-        /// Reads a byte from the stream and advances the position within the stream by one byte, or returns -1 if at the end of the stream.
-        /// </summary>
-        /// <returns>
-        /// The unsigned byte cast to an Int32, or -1 if at the end of the stream.
-        /// </returns>
-        /// <exception cref="T:System.NotSupportedException">The stream does not support reading. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>2</filterpriority>
-        public override int ReadByte()
-        {
-            return this.baseStream.ReadByte();
-        }
-
-        /// <summary>
-        /// Writes a byte to the current position in the stream and advances the position within the stream by one byte.
-        /// </summary>
-        /// <param name="value">The byte to write to the stream. </param><exception cref="T:System.IO.IOException">An I/O error occurs. </exception><exception cref="T:System.NotSupportedException">The stream does not support writing, or the stream is already closed. </exception><exception cref="T:System.ObjectDisposedException">Methods were called after the stream was closed. </exception><filterpriority>2</filterpriority>
-        public override void WriteByte(byte value)
-        {
-            this.baseStream.WriteByte(value);
-        }
-
-        /// <summary>
-        /// Releases the unmanaged resources used by the <see cref="T:System.IO.Stream"/> and optionally releases the managed resources.
-        /// </summary>
-        /// <param name="disposing">true to release both managed and unmanaged resources; false to release only unmanaged resources.</param>
-        protected override void Dispose(bool disposing)
-        {
         }
     }
     #endregion
