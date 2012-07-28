@@ -3,6 +3,7 @@
     using System;
     using System.IO;
     using System.Net;
+    using FluentAssertions;
     using NUnit.Framework;
 
     public class RedirectResponseTest
@@ -11,48 +12,51 @@
         public void PermanentRedirect()
         {
             var response = new RedirectResponse("/", RedirectResponse.RedirectType.Permanent);
-            Assert.AreEqual("/", response.Headers["Location"]);
-            Assert.AreEqual(String.Empty, BodyAsString(response));
-            Assert.AreEqual(HttpStatusCode.MovedPermanently, response.StatusCode);
+            response.Headers.Should().Contain("Location", "/");
+            response.Body.AsString().Should().BeEmpty();
+            response.StatusCode.Should().Be(HttpStatusCode.MovedPermanently);
         }
 
         [Test]
         public void TemporaryRedirect()
         {
             var response = new RedirectResponse("/", RedirectResponse.RedirectType.Temporary);
-            Assert.AreEqual("/", response.Headers["Location"]);
-            Assert.AreEqual(String.Empty, BodyAsString(response));
-            Assert.AreEqual(HttpStatusCode.TemporaryRedirect, response.StatusCode);
+            response.Headers.Should().Contain("Location", "/");
+            response.Body.AsString().Should().BeEmpty();
+            response.StatusCode.Should().Be(HttpStatusCode.TemporaryRedirect);
         }
 
         [Test]
         public void SeeOtherRedirect()
         {
             var response = new RedirectResponse("/", RedirectResponse.RedirectType.SeeOther);
-            Assert.AreEqual("/", response.Headers["Location"]);
-            Assert.AreEqual(String.Empty, BodyAsString(response));
-            Assert.AreEqual(HttpStatusCode.SeeOther, response.StatusCode);
+            response.Headers.Should().Contain("Location", "/");
+            response.Body.AsString().Should().BeEmpty();
+            response.StatusCode.Should().Be(HttpStatusCode.SeeOther);
         }
 
         [Test]
         public void DefaultRedirect()
         {
             var response = new RedirectResponse("/");
-            Assert.AreEqual("/", response.Headers["Location"]);
-            Assert.AreEqual(String.Empty, BodyAsString(response));
-            Assert.AreEqual(HttpStatusCode.SeeOther, response.StatusCode);
+            response.Headers.Should().Contain("Location", "/");
+            response.Body.AsString().Should().BeEmpty();
+            response.StatusCode.Should().Be(HttpStatusCode.SeeOther);
         }
+    }
 
-        private static string BodyAsString(Response response)
+    internal static class Extensions
+    {
+        public static string AsString(this Action<Stream> body)
         {
-            string body;
+            string s;
             using (var stream = new MemoryStream())
             {
-                response.Body.Invoke(stream);
+                body.Invoke(stream);
                 stream.Seek(0, SeekOrigin.Begin);
-                body = new StreamReader(stream).ReadToEnd();
+                s = new StreamReader(stream).ReadToEnd();
             }
-            return body;
+            return s;
         }
     }
 }
