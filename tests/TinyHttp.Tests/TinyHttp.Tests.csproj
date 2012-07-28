@@ -51,9 +51,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="NotFoundResponseTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QuickTest.cs" />
+    <Compile Include="RedirectResponseTest.cs" />
     <Compile Include="ResponseTest.cs" />
   </ItemGroup>
   <ItemGroup>
