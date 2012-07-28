@@ -54,6 +54,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Extensions\StreamExtensionsTest.cs" />
+    <Compile Include="RequestProcessing\RouteTest.cs" />
     <Compile Include="Responses\HtmlResponseTest.cs" />
     <Compile Include="Responses\Extensions.cs" />
     <Compile Include="Responses\FileResponseTest.cs" />

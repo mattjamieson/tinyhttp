@@ -115,10 +115,7 @@ namespace TinyHttp
     #endregion
 
     #region RequestProcessing
-    public interface IRequestProcessor
-    {
-        Response HandleRequest(Request request);
-    }
+    public interface IRequestProcessor { Response HandleRequest(Request request); }
 
     public abstract class RequestProcessor : IRequestProcessor
     {
@@ -126,7 +123,7 @@ namespace TinyHttp
 
         public Response HandleRequest(Request request)
         {
-            var route = _routes.FirstOrDefault(r => r.Method == request.HttpMethod && r.IsMatch(request));
+            var route = _routes.FirstOrDefault(r => r.IsMatch(request));
             return route != null ? route.Invoke(request) : new NotFoundResponse();
         }
 
@@ -151,49 +148,37 @@ namespace TinyHttp
             public Func<dynamic, Response> this[string path] { set { AddRoute(path, value); } }
             private void AddRoute(string path, Func<object, Response> value) { _requestProcessor._routes.Add(new Route(_method, path, value)); }
         }
+    }
 
-        private class Route
+    public class Route
+    {
+        private static readonly Regex PathRegex = new Regex(@"\{(?<param>\S+)\}", RegexOptions.Compiled);
+
+        private readonly string[] _paramNames;
+
+        public string Method { get; private set; }
+        public string Path { get; private set; }
+        public Func<dynamic, Response> Action { get; private set; }
+        public Regex Regex { get; private set; }
+
+        public Route(string method, string path, Func<dynamic, Response> action)
         {
-            private static readonly Regex PathRegex = new Regex(@"\{(?<param>\S+)\}", RegexOptions.Compiled);
+            Method = method;
+            Path = path;
+            Action = action;
 
-            private readonly string[] _paramNames;
+            var paramNames = new List<string>();
+            Regex = new Regex("^" + PathRegex.Replace(path, m => { var p = m.Groups["param"].Value; paramNames.Add(p); return String.Format(@"(?<{0}>\S+)", p); }) + "$");
+            _paramNames = paramNames.ToArray();
+        }
 
-            public string Method { get; private set; }
-            private string Path { get; set; }
-            private Func<dynamic, Response> Action { get; set; }
-            private Regex Regex { get; set; }
+        public bool IsMatch(Request request) { return request.HttpMethod == Method && Regex.IsMatch(request.Url.AbsolutePath); }
 
-            public Route(string method, string path, Func<dynamic, Response> action)
-            {
-                Method = method;
-                Path = path;
-                Action = action;
-
-                var paramNames = new List<string>();
-                Regex = new Regex(String.Concat(
-                    "^",
-                    PathRegex.Replace(path,
-                                      m =>
-                                      {
-                                          var paramName = m.Groups["param"].Value;
-                                          paramNames.Add(paramName);
-                                          return String.Concat("(?<", paramName, @">\S+)");
-                                      }),
-                    "$"));
-                _paramNames = paramNames.ToArray();
-            }
-
-            public bool IsMatch(Request request)
-            {
-                return request.HttpMethod == Method && Regex.IsMatch(request.Url.AbsolutePath);
-            }
-
-            public Response Invoke(Request request)
-            {
-                var match = Regex.Match(request.Url.AbsolutePath);
-                var parameters = DynamicDictionary.Create(_paramNames.ToDictionary(k => k, k => (object) match.Groups[k]));
-                return Action.Invoke(parameters);
-            }
+        public Response Invoke(Request request)
+        {
+            var match = Regex.Match(request.Url.AbsolutePath);
+            var parameters = DynamicDictionary.Create(_paramNames.ToDictionary(k => k, k => (object) match.Groups[k].Value));
+            return Action.Invoke(parameters);
         }
     }
 
